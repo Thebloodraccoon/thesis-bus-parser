@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    restart: always
+    env_file:
+      - .env
+    command: >
+      bash -c "
+         celery -A app.settings.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
+         celery -A app.settings.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
+      "
+    volumes:
+      - .:/app
+    networks:
+      - local_network
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_beat
+    restart: always
+    env_file:
+      - .env
+    command: celery -A app.settings.celery_app beat --loglevel=info
+    volumes:
+      - .:/app
+    networks:
+      - local_network
+  
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - local_network
+  
+  db:
+    image: postgres:13
+    container_name: prod_db
+    shm_size: "2g"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: Europe/Kyiv
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - local_network
+
+  test_db:
+    image: postgres:13
+    container_name: test_db
+    environment:
+      POSTGRES_USER: ${TEST_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TEST_POSTGRES_DB}
+    ports:
+      - "${TEST_POSTGRES_PORT}:5432"
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - infra_network
+      -
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parser_app
+    env_file:
+      - .env
+    depends_on:
+      - celery_worker
+      - celery_beat
+    volumes:
+      - .:/app
+    networks:
+      - local_network
+
+networks:
+  local_network:
+    driver: bridge
