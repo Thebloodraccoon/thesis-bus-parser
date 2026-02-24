@@ -35,7 +35,8 @@ class CityCRUD:
         self.db = db
 
     def get_all_cities(self) -> List[CitySchema]:
-        cities = self.db.execute(select(CityModel)).all()
+        stmt = select(CityModel)
+        cities = self.db.execute(stmt).scalars().all()
 
         result = []
         for city in cities:

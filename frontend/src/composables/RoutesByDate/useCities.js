@@ -9,7 +9,7 @@ export function useCities() {
     const fetchCities = async () => {
         try {
             const { data } = await apiClient.get('/cities/');
-            cities.value = Object.fromEntries(data.map((city) => [city.id, city.name_ru]));
+            cities.value = Object.fromEntries(data.map((city) => [city.id, city.name_ua]));
         } catch (error) {
             toast.add({ severity: 'error', summary: 'FAILED', detail: 'Failed to load cities', life: 3000 });
         }

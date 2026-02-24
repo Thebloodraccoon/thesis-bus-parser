@@ -16,7 +16,6 @@ const emit = defineEmits([
   'update:toCityIds'
 ]);
 
-// Универсальная логика: если cityOptions не передан, формируем его из cities
 const resolvedCityOptions = computed(() => {
   if (props.cityOptions) return props.cityOptions;
   return useCityOptions(
@@ -29,7 +28,6 @@ const resolvedCityOptions = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <!-- Город отправки -->
     <div>
       <label class="block text-sm font-medium mb-1">Город отправки</label>
       <MultiSelect
@@ -41,21 +39,20 @@ const resolvedCityOptions = computed(() => {
         optionValue="value"
         optionGroupLabel="label"
         optionGroupChildren="items"
-        placeholder="Выберите города"
+        placeholder="Select cities"
         filter
         class="w-64"
         :maxSelectedLabels="0"
       >
         <template #value="{ value }">
-          <span v-if="value?.length">{{ value.length }} город(ов) выбрано</span>
-          <span v-else class="text-gray-400">Выберите города</span>
+          <span v-if="value?.length">{{ value.length }} city(s) selected</span>
+          <span v-else class="text-gray-400">Select cities</span>
         </template>
       </MultiSelect>
     </div>
 
-    <!-- Город прибытия -->
     <div>
-      <label class="block text-sm font-medium mb-1">Город прибытия</label>
+      <label class="block text-sm font-medium mb-1">City of arrival</label>
       <MultiSelect
         :disabled="props.loading"
         :modelValue="props.toCityIds"
@@ -65,14 +62,14 @@ const resolvedCityOptions = computed(() => {
         optionValue="value"
         optionGroupLabel="label"
         optionGroupChildren="items"
-        placeholder="Выберите города"
+        placeholder="Select cities"
         filter
         class="w-64"
         :maxSelectedLabels="0"
       >
         <template #value="{ value }">
-          <span v-if="value?.length">{{ value.length }} город(ов) выбрано</span>
-          <span v-else class="text-gray-400">Выберите города</span>
+          <span v-if="value?.length">{{ value.length }} city(s) selected</span>
+          <span v-else class="text-gray-400">Select cities</span>
         </template>
       </MultiSelect>
     </div>

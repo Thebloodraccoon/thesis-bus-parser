@@ -40,7 +40,7 @@ const fetchTrips = async () => {
         if (props.arrivalTimeTo) params.arrival_time_to = props.arrivalTimeTo;
         if (props.isTransfer) params.is_transfer = true;
 
-        const { data } = await apiClient.get('/scraper/routes/trips/', {
+        const { data } = await apiClient.get('/routes/trips/', {
             params,
             paramsSerializer: (params) => {
                 const searchParams = new URLSearchParams();

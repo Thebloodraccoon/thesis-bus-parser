@@ -65,7 +65,7 @@ const resetFilters = () => {
 };
 
 onMounted(async () => {
-  const { data } = await apiClient.get('/scraper/presets/routes');
+  const { data } = await apiClient.get('/presets/routes');
   routesOptions.value = data.map(route => ({
     label: `ID: ${route.route_id} – ${route.name}`,
     value: route.route_id,
@@ -90,15 +90,13 @@ const customFilter = (option, searchText) => {
   text
   rounded
   size="small"
-  :label="filtersVisible ? 'Свернуть фильтры' : 'Показать фильтры'"
+  :label="filtersVisible ? 'Collapse filters' : 'Show filters'"
   @click="filtersVisible = !filtersVisible"
 />
 
 
-    <!-- Плавная анимация появления/скрытия фильтров -->
     <transition name="slide-fade">
       <div v-show="filtersVisible" class="filter-container w-1/3">
-        <!-- Дата и тип маршрута -->
         <div class="w-full flex gap-4 mb-6 items-end">
           <FiltersDateAndType
               :selectedDate="props.selectedDate"
@@ -110,7 +108,6 @@ const customFilter = (option, searchText) => {
           />
         </div>
 
-        <!-- Города и время -->
         <div class="w-full flex gap-4 mb-6 items-start">
           <FiltersCities
               :cities="props.cities"
@@ -136,7 +133,6 @@ const customFilter = (option, searchText) => {
           </div>
         </div>
 
-        <!-- Агрегаторы и пресеты -->
         <div class="w-full flex gap-4 mb-5 items-start">
           <FiltersAggregators
               :allAggregators="props.allAggregators"
@@ -168,7 +164,6 @@ const customFilter = (option, searchText) => {
           />
         </div>
 
-        <!-- Dropdown маршрутов -->
         <Dropdown
           :disabled="loading"
           class="mb-4"
@@ -181,11 +176,10 @@ const customFilter = (option, searchText) => {
           placeholder="Список маршрутов"
         />
 
-        <!-- Кнопки действий -->
         <div class="mb-5">
           <div class="flex gap-2 mt-4">
-            <Button label="Сбросить" severity="secondary" @click="resetFilters" />
-            <Button label="Подтвердить" severity="primary" @click="$emit('apply')" />
+            <Button label="Reset" severity="secondary" @click="resetFilters" />
+            <Button label="Confirm" severity="primary" @click="$emit('apply')" />
           </div>
         </div>
       </div>

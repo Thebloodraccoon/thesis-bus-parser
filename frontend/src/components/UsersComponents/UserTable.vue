@@ -57,17 +57,17 @@ defineEmits(['open-invite-dialog', 'update-role', 'open-delete-dialog']);
                     {{ data.email }}
                 </template>
             </Column>
-            <Column field="role" header="Роль" :style="{ width: '10%' }">
+            <Column field="role" header="Role" :style="{ width: '10%' }">
                 <template #body="{ data }">
                     <Dropdown v-model="data.role" :options="roleOptions" optionLabel="label" optionValue="value" :disabled="disabledRoles.includes(data.email)" @change="$emit('update-role', data, data.role)" />
                 </template>
             </Column>
-            <Column field="created_at" header="Дата создания" sortable :style="{ width: '15%' }">
+            <Column field="created_at" header="Creation Date" sortable :style="{ width: '15%' }">
                 <template #body="{ data }">
                     {{ formatDate(data.created_at) }}
                 </template>
             </Column>
-            <Column field="created_at" header="Последний вход" sortable :style="{ width: '15%' }">
+            <Column field="created_at" header="Last Login" sortable :style="{ width: '15%' }">
                 <template #body="{ data }">
                     {{ formatDate(data.last_login) }}
                 </template>

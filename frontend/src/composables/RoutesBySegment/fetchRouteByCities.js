@@ -12,7 +12,7 @@ export async function fetchRouteByCities({
   siteIds = []
 }) {
   if (!fromCityId || !toCityId) {
-    throw new Error('fromCityId и toCityId являются обязательными')
+    throw new Error('fromCityId and toCityId are required')
   }
 
   const params = new URLSearchParams()
@@ -37,7 +37,7 @@ siteIds.forEach(id => {
   params.append('sites', id)
 })
 
-const { data } = await apiClient.get('/scraper/routes/route-by-cities', {
+const { data } = await apiClient.get('/routes/route-by-cities', {
   params
 })
   return data

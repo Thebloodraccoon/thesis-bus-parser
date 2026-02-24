@@ -46,19 +46,19 @@ async function onSubmit() {
 defineExpose({ openDialog, closeDialog });
 </script>
 <template>
-    <Dialog v-model:visible="showDialog" header="Пригласить пользователя" :modal="true" :closable="false" :dismissableMask="true" class="min-w-[450px] min-h-[350px] flex items-center justify-center">
+    <Dialog v-model:visible="showDialog" header="Invite a user" :modal="true" :closable="false" :dismissableMask="true" class="min-w-[450px] min-h-[350px] flex items-center justify-center">
         <form @submit.prevent="onSubmit" class="flex flex-col gap-4 w-80">
             <div class="flex flex-col gap-2">
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <InputText v-model="form.email" id="email" placeholder="Введите email" class="w-full" required />
+                <InputText v-model="form.email" id="email" placeholder="Enter email" class="w-full" required />
             </div>
             <div class="flex flex-col gap-2">
-                <label for="role" class="block text-sm font-medium text-gray-700">Роль</label>
+                <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
                 <Select v-model="form.role" :options="roles" option-label="label" option-value="value" id="role" class="w-full" required />
             </div>
             <div class="flex justify-end gap-4">
-                <Button type="button" label="Отмена" class="p-button-secondary" @click="closeDialog" />
-                <Button type="submit" label="Пригласить" class="p-button-primary p-button" :loading="isLoading" :disabled="isLoading" />
+                <Button type="button" label="Cancel" class="p-button-secondary" @click="closeDialog" />
+                <Button type="submit" label="Invite" class="p-button-primary p-button" :loading="isLoading" :disabled="isLoading" />
             </div>
         </form>
     </Dialog>

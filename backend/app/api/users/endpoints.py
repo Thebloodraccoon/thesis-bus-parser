@@ -19,7 +19,7 @@ def get_current_user_info(current_user_info: User = Depends(get_current_user)):
         id=current_user_info.id,
         email=current_user_info.email,
         role=cast(
-            Literal["admin", "polonus_manager", "dps_manager"], current_user_info.role
+            Literal["admin", "analytic", "user"], current_user_info.role
         ),
         created_at=current_user_info.created_at,
         updated_at=current_user_info.updated_at,

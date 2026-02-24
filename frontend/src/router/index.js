@@ -15,9 +15,9 @@ const routes = [
         children: [
             {
                 path: '/',
-                name: 'Сегмент по дате',
+                name: 'Segment by Date',
                 meta: {
-                    breadcrumb: ['Сегмент по дате'],
+                    breadcrumb: ['Segment by Date'],
                     requiresAuth: true
                 },
                 component: () => import('@/views/dashboards/RouteByDatePage.vue')
@@ -26,7 +26,7 @@ const routes = [
                 path: '/route',
                 name: 'RouteBySegmentPage',
                 meta: {
-                    breadcrumb: ['Сегмент в диапазоне дат'],
+                    breadcrumb: ['Segment in the date range'],
                     requiresAuth: true
                 },
                 component: () => import('@/views/dashboards/RouteBySegmentPage.vue'),
@@ -53,13 +53,7 @@ const routes = [
                         path: '',
                         name: 'task list',
                         component: () => import('@/views/tasks/TaskPage.vue')
-
                     },
-                    {
-                        path: 'progress',
-                        name: 'Task Progress',
-                        component: () => import('@/views/tasks/TaskProgress.vue')
-                    }
                 ]
             },
             {
@@ -116,7 +110,6 @@ const routes = [
     }
 ];
 
-// Create Vue Router instance
 const router = createRouter({
     history: createWebHistory(),
     routes,

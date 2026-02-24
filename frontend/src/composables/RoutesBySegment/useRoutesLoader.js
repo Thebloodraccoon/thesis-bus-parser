@@ -25,7 +25,7 @@ export function useRoutesLoader(filters, selectedSites, allAggregators) {
       });
       routeData.value = response;
     } catch (err) {
-      console.error('Ошибка загрузки маршрутов:', err);
+      console.error('Route loading error:', err);
     } finally {
       loading.value = false;
     }
@@ -38,7 +38,6 @@ export function useRoutesLoader(filters, selectedSites, allAggregators) {
     return [...new Set(all)].sort();
   });
 
-  // 🔄 Построение таблицы строго по данным из ответа
   const formattedTable = computed(() => {
     if (!routeData.value?.agents || !filters.selectedDates.value?.length) return [];
 

@@ -1,5 +1,4 @@
 <script setup>
-import RouteFilters from "@/components/Filters/RouteFilters.vue";
 import RouteTable from "@/components/RoutesByDate/RouteTable.vue";
 import { computed, onMounted, ref } from 'vue';
 
@@ -105,7 +104,6 @@ function getNextWeekDates(baseDate) {
 const weekDates = ref(getNextWeekDates(selectedDate.value));
 const selectedWeekDate = ref(null); // null = показываем основную дату
 
-// Кэш: ключ - ISO дата, значение - { routesData, totalRecords, ... }
 const weekDataCache = ref({});
 const weekLoading = ref(false);
 
@@ -151,17 +149,7 @@ async function fetchWeekData() {
   weekLoading.value = false;
 }
 
-// Обновлять weekDates и weekDataCache при изменении фильтров или основной даты
-// watch([
-//   selectedDate, fromCityIds, toCityIds, departureTimeFrom, departureTimeTo, arrivalTimeFrom, arrivalTimeTo, isTransfer, selectedSites, size, page
-// ], () => {
-//   weekDates.value = getNextWeekDates(selectedDate.value);
-//   selectedWeekDate.value = null; // сбрасываем выбор
-//   weekDataCache.value = {}; // сбрасываем кэш
-//   fetchWeekData();
-// }, { immediate: true });
 
-// --- Для таблицы ---
 const tableRoutesData = computed(() => {
   if (selectedWeekDate.value) {
     const key = getDateKey(selectedWeekDate.value);
@@ -186,14 +174,12 @@ onMounted(async () => {
   aggregatorsLoaded.value = true;
   selectedSites.value = allAggregators.value.map(a => a.value);
 
-  // Загружаем данные при первоначальной загрузке
   if (isReady.value) {
     await fetchRoutes();
     updateWeekDatesAndData();
   }
 });
 
-// --- Для RouteTripsDialog ---
 const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate.value);
 
 </script>
@@ -217,19 +203,15 @@ const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate
         @apply="applyFilters"
     />
 
-    <!-- Лента дат следующей недели -->
     <div class="flex gap-2 justify-start my-4 pl-4">
       <template v-for="date in weekDates" :key="getDateKey(date)">
         <button
           class="px-3 py-2 rounded transition-colors duration-200 border font-medium shadow-sm"
           :class="[
-            // Выделение выбранной даты
             selectedWeekDate && getDateKey(selectedWeekDate) === getDateKey(date)
               ? 'bg-primary-500 text-white border-primary-600 dark:bg-primary-400 dark:text-surface-900 dark:border-primary-300'
               : 'bg-surface-0 text-surface-900 border-surface-200 hover:bg-primary-50 hover:text-primary-700 dark:bg-surface-900 dark:text-surface-0 dark:border-surface-700 dark:hover:bg-primary-900 dark:hover:text-primary-100',
-            // Выходные
             [6, 0].includes(date.getDay()) ? 'border-red-500 dark:border-red-400' : '',
-            // Неактивное состояние при загрузке
             (weekLoading || loading) ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
           ]"
           @click="selectedWeekDate = date"

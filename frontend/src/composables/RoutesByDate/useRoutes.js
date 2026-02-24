@@ -20,6 +20,7 @@ export function useRoutes({
     const routesData = ref([]);
     const totalRecords = ref(0);
     const loading = ref(false);
+    const toast = useToast();
 
     const currencySymbols = {
         UAH: '₴',
@@ -76,23 +77,21 @@ export function useRoutes({
 
                 const row = {
                     route: `${from} - ${to}`,
-                    fromCityId: route.from_city, // 👈 добавляем
-                    toCityId: route.to_city      // 👈 добавляем
+                    fromCityId: route.from_city,
+                    toCityId: route.to_city
                 };
 
                 for (const id in route.agents) {
                     const aggregatorName = aggregators.value[id] || `#${id}`;
                     const agentData = route.agents[id];
+
                     row[aggregatorName] = Object.keys(agentData).length
                         ? {
                             routeId: agentData.id,
                             currency: currencySymbols[agentData.currency] || agentData.currency,
-                            ourCount: agentData.our_segments_count,
-                            ourMin: agentData.our_min_price,
-                            ourMax: agentData.our_max_price,
-                            competitorCount: agentData.competitor_segments_count,
-                            competitorMin: agentData.competitor_min_price,
-                            competitorMax: agentData.competitor_max_price,
+                            count: agentData.total_segments_count,
+                            min: agentData.min_price,
+                            max: agentData.max_price,
                             median: agentData.median_price
                         }
                         : null;
@@ -104,7 +103,7 @@ export function useRoutes({
 
         } catch (error) {
             const toast = useToast();
-            toast.add({severity: 'error', summary: 'Ошибка', detail: 'Не удалось загрузить данные', life: 3000});
+            toast.add({severity: 'error', summary: 'Error', detail: 'Failed to load data', life: 3000});
         } finally {
             loading.value = false;
         }

@@ -1,5 +1,3 @@
-// utils/priceUtils.js или где ты хранишь утилиты
-
 export function currencySymbol(code) {
   const map = {
     UAH: '₴',

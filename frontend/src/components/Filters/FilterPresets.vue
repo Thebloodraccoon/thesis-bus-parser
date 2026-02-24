@@ -48,7 +48,7 @@ const selectedPreset = computed(() =>
 );
 
 const fetchPresets = async () => {
-  const { data } = await apiClient.get('/scraper/presets/');
+  const { data } = await apiClient.get('/presets/');
   presets.value = data;
 };
 

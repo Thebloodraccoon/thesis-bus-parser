@@ -14,8 +14,9 @@ const toast = useToast();
 // Table Data
 const users = ref([]);
 const roleOptions = [
-    { label: 'Администратор', value: 'admin' },
-    { label: 'Менеджер', value: 'dps_manager' }
+    { label: 'Admin', value: 'admin' },
+    { label: 'Analytic', value: 'analytic' },
+    { label: 'User', value: 'user' }
 ];
 
 onMounted(async () => {
@@ -24,7 +25,7 @@ onMounted(async () => {
     } catch (error) {
         toast.add({
             severity: 'error',
-            summary: 'Ошибка',
+            summary: 'Error',
             detail: error.message,
             life: 5000
         });

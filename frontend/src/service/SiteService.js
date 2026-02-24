@@ -2,22 +2,22 @@ import apiClient from '@/api/axios';
 
 export const SiteService = {
     getAllSites() {
-        return apiClient.get('/scraper/sites/');
+        return apiClient.get('/sites/');
     },
 
     getSiteById(id) {
-        return apiClient.get(`/scraper/sites/${id}`);
+        return apiClient.get(`/sites/${id}`);
     },
 
     createSite(data) {
-        return apiClient.post('/scraper/sites/', data);
+        return apiClient.post('/sites/', data);
     },
 
     updateSite(id, data) {
-        return apiClient.put(`/scraper/sites/${id}`, data);
+        return apiClient.put(`/sites/${id}`, data);
     },
 
     deleteSite(id) {
-        return apiClient.delete(`/scraper/sites/${id}`);
+        return apiClient.delete(`/sites/${id}`);
     }
 };

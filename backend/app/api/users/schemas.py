@@ -9,7 +9,7 @@ from backend.app.exceptions.auth_exceptions import InvalidEmailException
 
 class UserBase(BaseModel):
     email: str
-    role: Literal["admin", "polonus_manager", "dps_manager"]
+    role: Literal["admin", "analytic", "user"]
 
     @field_validator("email")
     def validate_email(cls, email):
@@ -23,7 +23,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    role: Optional[Literal["admin", "polonus_manager", "dps_manager"]] = None
+    role: Optional[Literal["admin", "analytic", "user"]] = None
 
     @model_validator(mode="before")
     def validate_data(cls, values):
@@ -32,7 +32,7 @@ class UserUpdate(BaseModel):
         return values
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"role": "polonus_manager"}}
+        json_schema_extra={"example": {"role": "user"}}
     )
 
 

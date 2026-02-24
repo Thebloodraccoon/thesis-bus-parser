@@ -20,7 +20,6 @@ const aggregatorOptions = useAggregatorOptions(
 
 watch(() => props.selectedPresetId, (presetId) => {
   if (!presetId) {
-    // Пустой шаблон — выбрать всех
     const allSiteIds = props.allAggregators.map(agg => agg.value);
     emit('update:selectedSites', allSiteIds);
   }
@@ -30,7 +29,7 @@ watch(() => props.selectedPresetId, (presetId) => {
 
 <template>
   <div>
-    <label class="block text-sm font-medium mb-1">Фильтр по агрегаторам</label>
+    <label class="block text-sm font-medium mb-1">Filter by aggregators</label>
     <MultiSelect
       :disabled="props.loading"
       :modelValue="props.selectedSites"
@@ -40,13 +39,13 @@ watch(() => props.selectedPresetId, (presetId) => {
       optionValue="value"
       optionGroupLabel="label"
       optionGroupChildren="items"
-      placeholder="Фильтр по агрегаторам"
+      placeholder="Filter by aggregators"
       class="mb-4 w-64"
       :maxSelectedLabels="0"
     >
       <template #value="{ value }">
-        <span v-if="value && value.length">{{ value.length }} агент(ов) выбрано</span>
-        <span v-else class="text-gray-400">Выберите агрегаторы</span>
+        <span v-if="value && value.length">{{ value.length }} agent(s) selected</span>
+        <span v-else class="text-gray-400">Select aggregators</span>
       </template>
     </MultiSelect>
   </div>

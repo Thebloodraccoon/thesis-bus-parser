@@ -14,9 +14,8 @@ const emit = defineEmits([
 </script>
 
 <template>
-  <!-- Фильтр по дате -->
   <div v-if="showDate" class="flex flex-col">
-    <label class="block text-sm font-medium mb-1">Выберите дату</label>
+    <label class="block text-sm font-medium mb-1">Select date</label>
     <Calendar
         :disabled="props.loading"
         :modelValue="props.selectedDate"
@@ -30,21 +29,20 @@ const emit = defineEmits([
 
   </div>
 
-  <!-- Фильтр по пересадке -->
   <div v-if="showTransfer" class="flex flex-col">
-    <label class="text-sm font-medium mb-1">Тип маршрута</label>
+    <label class="text-sm font-medium mb-1">Route type</label>
     <Dropdown
         :disabled="props.loading"
         :modelValue="props.isTransfer"
         @update:modelValue="emit('update:isTransfer', $event)"
         :options="[
-        { label: 'Все', value: null },
-        { label: 'С пересадкой', value: true },
-        { label: 'Без пересадки', value: false }
+        { label: 'ALL', value: null },
+        { label: 'With a transfer', value: true },
+        { label: 'No Transfer', value: false }
       ]"
         optionLabel="label"
         optionValue="value"
-        placeholder="Все"
+        placeholder="ALL"
         class="w-32"
     />
   </div>

@@ -26,7 +26,7 @@ const fetchStats = async () => {
     if (siteId.value !== null) params.site_id = siteId.value;
     if (isActive.value !== null) params.is_active = isActive.value;
 
-    const {data} = await apiClient.get('/scraper/parser-stats/', {params});
+    const {data} = await apiClient.get('/parser-stats/', {params});
     stats.value = data.map(item => ({
       ...item,
       date_progress: getDateProgress(item),

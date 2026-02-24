@@ -6,13 +6,13 @@ export class AuthService {
             const response = await apiClient.post('/auth/login', {email, password});
 
             if (response.status !== 200) {
-                throw new Error('Ошибка авторизации');
+                throw new Error('Authorization error');
             }
 
             localStorage.setItem('access_token', response.data.access_token);
             return response.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.detail || 'Ошибка авторизации';
+            const errorMessage = error.response?.data?.detail || 'Authorization error';
             throw new Error(errorMessage);
         }
     }
@@ -25,10 +25,10 @@ export class AuthService {
                 localStorage.setItem('access_token', response.data.access_token);
                 return response.data.access_token;
             } else {
-                throw new Error('Не удалось обновить токен');
+                throw new Error('Failed to update the token');
             }
         } catch (error) {
-            console.error('Ошибка обновления токена:', error);
+            console.error('Token update error:', error);
             throw error;
         }
     }
@@ -38,7 +38,7 @@ export class AuthService {
             await apiClient.post('/auth/logout');
             localStorage.removeItem('access_token');
         } catch (error) {
-            console.error('Ошибка выхода:', error);
+            console.error('Exit error: ', error);
         }
     }
 
@@ -50,13 +50,13 @@ export class AuthService {
             });
 
             if (response.status !== 200) {
-                throw new Error('Ошибка подтверждения 2FA');
+                throw new Error('2FA Verification Error');
             }
 
             localStorage.setItem('access_token', response.data.access_token);
             return response.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.detail || 'Ошибка 2FA';
+            const errorMessage = error.response?.data?.detail || '2FA Error';
             throw new Error(errorMessage);
         }
     }

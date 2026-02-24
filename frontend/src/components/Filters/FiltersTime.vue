@@ -19,11 +19,9 @@ const emit = defineEmits([
 
 <template>
   <div class="flex flex-col sm:flex-row flex-wrap gap-4">
-    <!-- Группа отправления -->
     <div class="flex flex-col sm:flex-row gap-4">
-      <!-- Отправление от -->
       <div class="flex flex-col">
-        <label class="text-sm font-medium mb-1">Отправление от</label>
+        <label class="text-sm font-medium mb-1">Departure From</label>
         <TimeInputDropdown
           :loading="props.loading"
           :modelValue="props.departureTimeFrom"
@@ -32,9 +30,8 @@ const emit = defineEmits([
         />
       </div>
 
-      <!-- Отправление до -->
       <div class="flex flex-col">
-        <label class="text-sm font-medium mb-1">Отправление до</label>
+        <label class="text-sm font-medium mb-1">Departure to</label>
         <TimeInputDropdown
           :loading="props.loading"
           :modelValue="props.departureTimeTo"
@@ -44,11 +41,9 @@ const emit = defineEmits([
       </div>
     </div>
 
-    <!-- Группа прибытия -->
     <div class="flex flex-col sm:flex-row gap-4 mt-2">
-      <!-- Прибытие от -->
       <div class="flex flex-col">
-        <label class="text-sm font-medium mb-1">Прибытие от</label>
+        <label class="text-sm font-medium mb-1">Arrival from</label>
         <TimeInputDropdown
           :loading="props.loading"
           :modelValue="props.arrivalTimeFrom"
@@ -57,9 +52,8 @@ const emit = defineEmits([
         />
       </div>
 
-      <!-- Прибытие до -->
       <div class="flex flex-col">
-        <label class="text-sm font-medium mb-1">Прибытие до</label>
+        <label class="text-sm font-medium mb-1">Arrival before</label>
         <TimeInputDropdown
           :loading="props.loading"
           :modelValue="props.arrivalTimeTo"

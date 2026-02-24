@@ -14,7 +14,7 @@ async function fetchCurrentUser() {
         const response = await apiClient.get('/user/current');
         user.value = response.data;
     } catch (error) {
-        console.error('Ошибка получения текущего пользователя:', error);
+        console.error('Error getting the current user: ', error);
         user.value = null;
     } finally {
         isFetching.value = false;

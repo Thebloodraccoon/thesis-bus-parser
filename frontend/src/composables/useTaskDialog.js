@@ -16,7 +16,7 @@ export function useTaskDialog() {
         loading.value = true;
         error.value = null;
         try {
-            const response = await apiClient.get(`/scraper/celery/schedule/${taskId}`);
+            const response = await apiClient.get(`/celery/schedule/${taskId}`);
             taskData.value = response.data;
         } catch (err) {
             error.value = 'Ошибка загрузки данных';
@@ -41,7 +41,7 @@ export function useTaskDialog() {
         error.value = null;
 
         try {
-            await apiClient.put(`/scraper/celery/schedule/${updatedData.id}`, updatedData);
+            await apiClient.put(`/celery/schedule/${updatedData.id}`, updatedData);
             toast.add({
                 severity: 'success',
                 summary: 'Успех',

@@ -33,13 +33,11 @@ function formatDate(dateStr) {
       </div>
     </div>
 
-    <!-- ❌ Нет данных -->
     <div v-else-if="routesData.length === 0" class="w-full text-center py-8 text-gray-500">
       <i class="pi pi-info-circle mr-2" />
-      Нет данных для отображения. Проверьте фильтры.
+          No data to display. Check the filters.
     </div>
 
-    <!-- ✅ Таблица -->
     <DataTable
       v-else
       :value="routesData"
@@ -49,8 +47,44 @@ function formatDate(dateStr) {
     >
       <Column field="date" header="Дата" frozen alignFrozen="left" style="min-width: 140px">
         <template #body="slotProps">
-          {{ formatDate(slotProps.data.date) }}
-        </template>
+            <div
+                @click="openTripsDialog(slotProps.data[aggregator], aggregator, slotProps.data.route)"
+                :class="[
+                'rounded p-2 transition-colors duration-300',
+                slotProps.data[aggregator] && slotProps.data[aggregator].count > 0
+                  ? 'cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900'
+                  : 'cursor-default'
+              ]"
+            >
+              <template v-if="slotProps.data[aggregator]">
+                <div class="text-sm mb-1 font-semibold">
+                  📊 {{ slotProps.data[aggregator].count }} сегм.
+                </div>
+
+                <div class="text-xs mb-1 text-surface-600 dark:text-surface-400">
+                  <template v-if="slotProps.data[aggregator].min === slotProps.data[aggregator].max">
+                    {{ formatPrice(slotProps.data[aggregator].min, slotProps.data[aggregator].currency) }}
+                  </template>
+                  <template v-else>
+                    {{ formatPrice(slotProps.data[aggregator].min, slotProps.data[aggregator].currency) }}
+                    —
+                    {{ formatPrice(slotProps.data[aggregator].max, slotProps.data[aggregator].currency) }}
+                  </template>
+                </div>
+
+                <div class="text-sm">
+                  Медиана:
+                  <span class="text-primary-600 dark:text-primary-400 font-bold">
+                    {{ formatPrice(slotProps.data[aggregator].median, slotProps.data[aggregator].currency) }}
+                  </span>
+                </div>
+              </template>
+
+              <template v-else>
+                <div class="text-sm text-gray-400 italic">Нет данных</div>
+              </template>
+            </div>
+          </template>
       </Column>
 
       <Column
