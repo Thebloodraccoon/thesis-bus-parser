@@ -1,0 +1,98 @@
+<script setup>
+import { useLayout } from '@/layout/composables/layout';
+import { ref } from 'vue';
+import router from '@/router';
+import AppBreadcrumb from './AppBreadcrumb.vue';
+import AppSidebar from './AppSidebar.vue';
+import { AuthService } from '@/service/AuthService';
+import { useToast } from 'primevue/usetoast';
+
+const { onMenuToggle, showConfigSidebar, showSidebar, toggleDarkMode, layoutConfig } = useLayout();
+
+const darkTheme = ref(layoutConfig.darkTheme); // используем для SelectButton
+
+const searchInput = ref(null);
+const searchActive = ref(false);
+const toast = useToast();
+
+const themeOptions = ref([
+    { name: 'Light', value: false },
+    { name: 'Dark', value: true }
+]);
+
+const onMenuButtonClick = () => {
+    onMenuToggle();
+};
+
+const activateSearch = () => {
+    searchActive.value = true;
+    setTimeout(() => {
+        searchInput.value?.$el?.focus();
+    }, 100);
+};
+
+const deactivateSearch = () => {
+    searchActive.value = false;
+};
+
+const onConfigButtonClick = () => {
+    showConfigSidebar();
+};
+
+const onSidebarButtonClick = () => {
+    showSidebar();
+};
+
+const handleLogout = async () => {
+    try {
+        await AuthService.logout();
+        localStorage.removeItem('access_token');
+        toast.add({
+            severity: 'success',
+            summary: 'Успех',
+            detail: 'Вы успешно вышли с аккаунта',
+            life: 3000
+        });
+        await router.push('/auth/login');
+    } catch (err) {
+        toast.add({
+            severity: 'error',
+            summary: 'Ошибка выхода',
+            detail: 'Что-то пошло не так при выходе из аккаунта',
+            life: 3000
+        });
+    }
+};
+</script>
+
+<template>
+    <div class="layout-topbar">
+        <div class="topbar-start">
+            <Button ref="menubutton" type="button" class="topbar-menubutton p-trigger" @click="onMenuButtonClick">
+                <i class="pi pi-bars"></i>
+            </Button>
+
+            <div class="topbar-breadcrumb">
+                <AppBreadcrumb />
+            </div>
+        </div>
+
+        <div class="layout-topbar-menu-section">
+            <AppSidebar />
+        </div>
+
+        <div class="topbar-end mr-20 items-center flex gap-4">
+            <!-- Switch для смены темы -->
+            <div class="flex items-center gap-2 mr-10">
+                <i class="pi pi-sun" />
+                <InputSwitch v-model="darkTheme" @change="toggleDarkMode" />
+                <i class="pi pi-moon" />
+            </div>
+
+            <a href="#" class="flex items-center hover:border-gray-700 duration-200" @click.prevent="handleLogout">
+                <i class="pi pi-fw pi-sign-out mr-2"></i>
+                <span>Выход</span>
+            </a>
+        </div>
+    </div>
+</template>

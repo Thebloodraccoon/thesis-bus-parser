@@ -1,0 +1,58 @@
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build output
+dist/
+build/
+
+# Cache files
+.DS_Store
+.env.local
+.env.*.local
+
+# Local environment files
+.env
+.env.production.local
+
+# Static analysis tools
+.eslintcache
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+
+# Git hooks
+.husky/
+
+# Testing outputs
+coverage/
+*.lcov
+
+# Vue-related
+public/hot
+public/assets
+src/assets/generated/*
+vite-plugin-ssr/dist
+!/src/config.js
+/.vite/
+.prettierignore
+.prettierrc.json
+.eslintrc.cjs!/src/config.js

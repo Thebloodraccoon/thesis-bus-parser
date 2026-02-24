@@ -1,0 +1,24 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code/backend
+    depends_on:
+      - backend_db
+      - backend_redis
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/code
+    networks:
+      - diplom_network
+
+networks:
+  diplom_network:
+    driver: bridge
