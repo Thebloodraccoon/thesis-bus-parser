@@ -3,7 +3,6 @@ import FiltersDateAndType from "@/components/Filters/FiltersDateAndType.vue";
 import FiltersCities from "@/components/Filters/FiltersCities.vue";
 import FiltersTime from "@/components/Filters/FiltersTime.vue";
 import FiltersAggregators from "@/components/Filters/FiltersAggregators.vue";
-import FilterPresets from "@/components/Filters/FilterPresets.vue";
 import {onMounted, ref, watch} from "vue";
 import apiClient from "@/api/axios";
 
@@ -140,42 +139,7 @@ const customFilter = (option, searchText) => {
               :loading="loading"
               @update:selectedSites="emit('update:selectedSites', $event)"
           />
-
-          <FilterPresets
-              v-model:selectedPresetId="selectedPresetIdLocal"
-              :fromCityIds="props.fromCityIds"
-              :toCityIds="props.toCityIds"
-              :selectedSites="props.selectedSites"
-              :departureTimeFrom="props.departureTimeFrom"
-              :departureTimeTo="props.departureTimeTo"
-              :arrivalTimeFrom="props.arrivalTimeFrom"
-              :arrivalTimeTo="props.arrivalTimeTo"
-              :isTransfer="props.isTransfer"
-              :loading="loading"
-              @update:fromCityIds="emit('update:fromCityIds', $event)"
-              @update:toCityIds="emit('update:toCityIds', $event)"
-              @update:selectedSites="emit('update:selectedSites', $event)"
-              @update:departureTimeFrom="emit('update:departureTimeFrom', $event)"
-              @update:departureTimeTo="emit('update:departureTimeTo', $event)"
-              @update:arrivalTimeFrom="emit('update:arrivalTimeFrom', $event)"
-              @update:arrivalTimeTo="emit('update:arrivalTimeTo', $event)"
-              @update:isTransfer="emit('update:isTransfer', $event)"
-              @reset="$emit('reset')"
-          />
         </div>
-
-        <Dropdown
-          :disabled="loading"
-          class="mb-4"
-          v-model="selectedRouteId"
-          :options="routesOptions"
-          optionLabel="label"
-          optionValue="value"
-          filter
-          :filterFunction="customFilter"
-          placeholder="Список маршрутов"
-        />
-
         <div class="mb-5">
           <div class="flex gap-2 mt-4">
             <Button label="Reset" severity="secondary" @click="resetFilters" />

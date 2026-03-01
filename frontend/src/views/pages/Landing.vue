@@ -26,7 +26,7 @@ function scrollToElement($element) {
                 <div class="header-left-elements flex items-center justify-between">
                     <div class="layout-topbar-logo flex items-center cursor-pointer" @click="goHome">
                         <img src="/layout/images/logo/logo-dark.png" alt="layout" class="logo" style="height: 32px" />
-                        <img src="/layout/images/logo/appname-dark.png" alt="layout" class="appname ml-2" style="height: 12px" />
+                        <img src="/layout/images/logo/appname-light.png" alt="layout" class="appname ml-2" style="height: 12px" />
                     </div>
 
                     <ul ref="menu" id="menu" style="top: 0px; right: 0%" class="list-none !hidden lg:!flex lg:!flex-row !flex-col !items-start absolute lg:relative h-screen lg:h-auto m-0 z-50 w-full sm:w-6/12 lg:w-full lg:py-0 pl-8">
@@ -377,7 +377,7 @@ function scrollToElement($element) {
                         <div class="flex items-center justify-between">
                             <div class="flex items-center cursor-pointer" @click="goHome">
                                 <img src="/layout/images/logo/logo-dark.png" alt="atlantis-layout" class="logo" style="height: 32px" />
-                                <img src="/layout/images/logo/appname-dark.png" alt="atlantis-layout" class="appname ml-2" style="height: 12px" />
+                                <img src="/layout/images/logo/appname-light.png" alt="atlantis-layout" class="appname ml-2" style="height: 12px" />
                                 <span class="text-gray-700 opacity-70" style="margin-left: 2.5rem">Copyright - PrimeTek</span>
                             </div>
                         </div>

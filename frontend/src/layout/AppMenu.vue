@@ -13,15 +13,15 @@ onMounted(async () => {
 
 const model = ref([
     {
-        label: 'Статистика',
+        label: 'Statistics',
         items: [
             {
-                label: 'Сегменты на одну дату',
+                label: 'Single-date segments',
                 icon: 'pi pi-calendar',
                 to: '/'
             },
             {
-                label: 'Cегмент в диапазоне дат',
+                label: 'Date range segment',
                 icon: 'pi pi-arrows-v',
                 to: '/route'
             }
@@ -31,22 +31,23 @@ const model = ref([
         visible: isAdmin.value,
         items: [
             {
-                label: 'Все Пользователи',
+                label: 'All Users',
                 icon: 'pi pi-users',
                 to: '/users'
             }
         ]
     },
     {
-        label: 'Управление агентами',
+        visible: isAdmin.value,
+        label: 'Agents Management',
         items: [
             {
-                label: 'Список агентов',
+                label: 'List of agents',
                 icon: 'pi pi-sitemap',
                 to: '/site/list'
             },
             {
-                label: 'Создать Агента',
+                label: 'Create an Agent',
                 visible: isAdmin.value,
                 icon: 'pi pi-plus-circle',
                 to: '/site/create'
@@ -56,26 +57,21 @@ const model = ref([
     {
         items: [
             {
-                label: 'Список Городов',
+                label: 'List of cities',
                 icon: 'pi pi-building',
                 to: '/city/list'
             }
         ]
     },
     {
-        label: 'Celery Задачи',
+        label: 'Celery Tasks Management',
         visible: isAdmin.value,
         items: [
             {
-                label: 'Список Задач',
+                label: 'Tasks List',
                 icon: 'pi pi-clock',
                 to: '/task'
-            },
-            {
-                label: 'Статус Задач',
-                icon: 'pi pi-chart-bar',
-                to: '/task/progress'
-            },
+            }
         ]
     }
 ]);

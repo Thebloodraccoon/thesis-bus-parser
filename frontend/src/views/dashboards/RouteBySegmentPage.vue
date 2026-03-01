@@ -13,7 +13,6 @@ import FiltersAggregators from '@/components/Filters/FiltersAggregators.vue';
 import FiltersSingleCity from '@/components/RoutesBySegment/FiltersSingleCity.vue';
 import RoutesTableByDates from '@/components/RoutesBySegment/RoutesTableByDates.vue';
 import RouteTripsDialog from '@/components/RouteTripsDialog.vue';
-import FilterPresets from '@/components/Filters/FilterPresets.vue';
 
 const route = useRoute();
 
@@ -187,27 +186,6 @@ function applyFilters() {
         @update:selectedSites="(val) => (selectedSites.value = val)"
       />
 
-      <FilterPresets
-        v-model:selectedPresetId="selectedPresetId"
-        :fromCityIds="fromCityId"
-        :toCityIds="toCityId"
-        :selectedSites="selectedSites"
-        :departureTimeFrom="departureTimeFrom"
-        :departureTimeTo="departureTimeTo"
-        :arrivalTimeFrom="arrivalTimeFrom"
-        :arrivalTimeTo="arrivalTimeTo"
-        :isTransfer="isTransfer"
-        :loading="loading"
-        @update:fromCityIds="(val) => fromCityId = val"
-        @update:toCityIds="(val) => toCityId = val"
-        @update:selectedSites="(val) => selectedSites = val"
-        @update:departureTimeFrom="(val) => departureTimeFrom = val"
-        @update:departureTimeTo="(val) => departureTimeTo = val"
-        @update:arrivalTimeFrom="(val) => arrivalTimeFrom = val"
-        @update:arrivalTimeTo="(val) => arrivalTimeTo = val"
-        @update:isTransfer="(val) => isTransfer = val"
-        @reset="resetFilters"
-      />
     </div>
 
     <!-- Кнопки управления -->

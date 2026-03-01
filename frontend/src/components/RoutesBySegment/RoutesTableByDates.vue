@@ -11,13 +11,6 @@ const props = defineProps({
 });
 
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('ru-RU');
-}
-
-
 </script>
 
 <template>
