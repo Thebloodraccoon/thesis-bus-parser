@@ -51,13 +51,10 @@ export function useRoutesLoader(filters, selectedSites, allAggregators) {
         row[agentId] = raw?.id
           ? {
               id: raw.id,
-              ourCount: raw.our_segments_count,
-              ourMin: raw.our_min_price,
-              ourMax: raw.our_max_price,
-              competitorCount: raw.competitor_segments_count,
-              competitorMin: raw.competitor_min_price,
-              competitorMax: raw.competitor_max_price,
+              min: raw.min_price,
+              max: raw.max_price,
               median: raw.median_price,
+              count: raw.total_segments_count,
               currency: raw.currency,
             }
           : null;

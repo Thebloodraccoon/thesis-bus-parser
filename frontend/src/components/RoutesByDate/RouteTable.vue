@@ -23,7 +23,7 @@ const props = defineProps({
 <template>
   <div class="overflow-x-auto w-full">
     <div v-if="loading" class="card border border-surface rounded p-6 w-full">
-      <div class="font-semibold text-xl mb-4">Завантаження даних...</div>
+      <div class="font-semibold text-xl mb-4">Uploading data...</div>
       <div v-for="n in size" :key="n" class="mb-4">
         <div class="flex space-x-4">
           <Skeleton width="10rem" class="mb-2" />
@@ -76,25 +76,25 @@ const props = defineProps({
 
               <!-- Кількість сегментів -->
               <div class="text-xs text-surface-500 mb-1">
-                🚌 {{ slotProps.data[aggregator].count }} сегм.
+                🚌 {{ slotProps.data[aggregator].count }} segments
               </div>
 
               <!-- Мін / Медіана / Макс -->
               <div class="flex flex-col gap-0.5 text-sm">
                 <div class="flex items-center gap-1">
-                  <span class="text-surface-400 text-xs w-8">мін</span>
+                  <span class="text-surface-400 text-xs w-8">min</span>
                   <span class="text-blue-600 dark:text-blue-300 font-bold">
                     {{ formatPrice(slotProps.data[aggregator].min, slotProps.data[aggregator].currency) }}
                   </span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-surface-400 text-xs w-8">мед</span>
+                  <span class="text-surface-400 text-xs w-8">med</span>
                   <span class="text-orange-500 dark:text-yellow-400 font-bold">
                     {{ formatPrice(slotProps.data[aggregator].median, slotProps.data[aggregator].currency) }}
                   </span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-surface-400 text-xs w-8">макс</span>
+                  <span class="text-surface-400 text-xs w-8">max</span>
                   <span class="text-red-600 dark:text-red-400 font-bold">
                     {{ formatPrice(slotProps.data[aggregator].max, slotProps.data[aggregator].currency) }}
                   </span>
@@ -104,7 +104,7 @@ const props = defineProps({
             </template>
 
             <template v-else>
-              <div class="text-sm text-gray-400 italic">Немає даних</div>
+              <div class="text-sm text-gray-400 italic">No data</div>
             </template>
           </div>
         </template>

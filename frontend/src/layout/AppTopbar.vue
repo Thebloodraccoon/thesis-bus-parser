@@ -50,15 +50,15 @@ const handleLogout = async () => {
         toast.add({
             severity: 'success',
             summary: 'Успех',
-            detail: 'Вы успешно вышли с аккаунта',
+            detail: 'You have successfully logged out of your account',
             life: 3000
         });
         await router.push('/auth/login');
     } catch (err) {
         toast.add({
             severity: 'error',
-            summary: 'Ошибка выхода',
-            detail: 'Что-то пошло не так при выходе из аккаунта',
+            summary: 'Exit error',
+            detail: 'Something went wrong when you signed out of your account',
             life: 3000
         });
     }

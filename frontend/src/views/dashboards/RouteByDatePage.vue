@@ -203,32 +203,6 @@ const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate
         @apply="applyFilters"
     />
 
-    <div class="flex gap-2 justify-start my-4 pl-4">
-      <template v-for="date in weekDates" :key="getDateKey(date)">
-        <button
-          class="px-3 py-2 rounded transition-colors duration-200 border font-medium shadow-sm"
-          :class="[
-            selectedWeekDate && getDateKey(selectedWeekDate) === getDateKey(date)
-              ? 'bg-primary-500 text-white border-primary-600 dark:bg-primary-400 dark:text-surface-900 dark:border-primary-300'
-              : 'bg-surface-0 text-surface-900 border-surface-200 hover:bg-primary-50 hover:text-primary-700 dark:bg-surface-900 dark:text-surface-0 dark:border-surface-700 dark:hover:bg-primary-900 dark:hover:text-primary-100',
-            [6, 0].includes(date.getDay()) ? 'border-red-500 dark:border-red-400' : '',
-            (weekLoading || loading) ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
-          ]"
-          @click="selectedWeekDate = date"
-          :disabled="weekLoading || loading"
-        >
-          <span>{{ date.toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: '2-digit' }) }}</span>
-        </button>
-      </template>
-      <button
-        v-if="selectedWeekDate"
-        class="ml-4 px-3 py-2 rounded border bg-gray-100 text-gray-700 border-gray-400 dark:bg-surface-800 dark:text-surface-100 dark:border-surface-600 hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900 dark:hover:text-primary-100 transition-colors duration-200 font-medium shadow-sm"
-        @click="selectedWeekDate = null"
-        :disabled="weekLoading || loading"
-        :class="(weekLoading || loading) ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''"
-      >Сбросить</button>
-    </div>
-
     <RouteTable
       :routesData="tableRoutesData"
       :cities="cities"

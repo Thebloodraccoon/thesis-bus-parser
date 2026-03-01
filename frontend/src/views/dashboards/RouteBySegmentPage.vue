@@ -54,26 +54,25 @@ const { loadRoutes, routeData, loading, dates, formattedTable, aggregators } = u
 const showDialog = ref(false);
 const selectedRouteId = ref(null);
 const selectedDate = ref(null);
-const selectedAggregator = ref(null);
+const selectedAgentId = ref(null);
 const selectedCellStats = ref(null);
 
-function openDialog({ routeId, date, aggregator }) {
+function openDialog({ routeId, date, agentId }) {
   selectedRouteId.value = routeId;
   selectedDate.value = date;
-  selectedAggregator.value = aggregator;
+  selectedAgentId.value = agentId;
 
   const cell = formattedTable.value
     ?.find(row => row.date === date)
-    ?.[aggregator];
+    ?.[agentId];
 
   selectedCellStats.value = cell
     ? {
-        min: cell.competitorMin ?? cell.ourMin ?? null,
+        min: cell.min ?? null,
         median: cell.median ?? null,
-        max: cell.competitorMax ?? cell.ourMax ?? null,
+        max: cell.max ?? null,
         currency: cell.currency ?? '',
-        ourCount: cell.ourCount ?? 0,
-        competitorCount: cell.competitorCount ?? 0,
+        count: cell.count ?? 0,
       }
     : null;
 
@@ -202,7 +201,6 @@ function applyFilters() {
 
   <RoutesTableByDates
     :routesData="formattedTable"
-    :dates="dates"
     :aggregators="aggregators"
     :loading="loading"
     :size="5"
@@ -213,7 +211,7 @@ function applyFilters() {
     :visible="showDialog"
     @update:visible="showDialog = $event"
     :routeId="selectedRouteId"
-    :aggregatorName="aggregators[selectedAggregator]"
+    :aggregatorName="aggregators[selectedAgentId]"
     :selectedDate="selectedDate"
     :departureTimeFrom="departureTimeFrom"
     :departureTimeTo="departureTimeTo"

@@ -32,8 +32,8 @@ async function handleLogin() {
     if (!validateEmail(email.value)) {
       toast.add({
         severity: 'warn',
-        summary: 'Внимание',
-        detail: 'Введите корректный email',
+        summary: 'Warning',
+        detail: 'Enter a valid email',
         life: 3000
       });
       return;
@@ -47,8 +47,8 @@ async function handleLogin() {
 
       toast.add({
         severity: 'success',
-        summary: 'Успех',
-        detail: 'Вы успешно вошли в систему',
+        summary: 'Successful',
+        detail: 'You have successfully logged in',
         life: 3000
       });
 
@@ -71,7 +71,7 @@ async function handleLogin() {
   } catch (err) {
     toast.add({
       severity: 'error',
-      summary: 'Ошибка',
+      summary: 'Error',
       detail: err.message,
       life: 5000
     });
@@ -85,8 +85,8 @@ async function handleVerifyOtp() {
 
     toast.add({
       severity: 'success',
-      summary: 'Успех',
-      detail: 'Вы вошли по 2FA',
+      summary: 'Successful',
+      detail: 'You are logged in with 2FA',
       life: 3000
     });
 
@@ -95,7 +95,7 @@ async function handleVerifyOtp() {
   } catch (err) {
     toast.add({
       severity: 'error',
-      summary: 'Ошибка',
+      summary: 'Error',
       detail: err.message,
       life: 5000
     });
@@ -123,8 +123,8 @@ function startCountdown() {
       showTwoFAModal.value = false;
       toast.add({
         severity: 'warn',
-        summary: 'Время вышло',
-        detail: 'Срок действия временного токена истёк. Повторите вход.',
+        summary: 'Time is up',
+        detail: 'The temporary token has expired. Sign in again.',
         life: 5000
       });
     }
@@ -183,15 +183,15 @@ onUnmounted(() => {
             <img src="/layout/images/logo/logo-gray.png" class="login-footer-logo" style="width: 22px"/>
             <img src="/layout/images/logo/appname-gray.png" class="login-footer-appname ml-2" style="width: 45px"/>
           </div>
-          <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2024</span>
+          <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2026</span>
         </div>
       </Fluid>
     </div>
   </div>
 
-  <Dialog v-model:visible="showTwoFAModal" header="Двухфакторная аутентификация" modal>
+  <Dialog v-model:visible="showTwoFAModal" header="Two-factor authentication" modal>
     <div class="flex flex-col items-center justify-center text-center p-4">
-      <p class="mb-4 text-base font-medium">Введите код из приложения Google Authenticator</p>
+      <p class="mb-4 text-base font-medium">Enter the code from the Google Authenticator app</p>
 
       <p class="text-sm text-gray-400 mb-4">
         Время на ввод: <span class="font-semibold text-black dark:text-white">{{ Math.floor(countdown / 60) }}:{{ String(countdown % 60).padStart(2, '0') }}</span>
@@ -210,7 +210,7 @@ onUnmounted(() => {
 
       <InputText
           v-model="otpCode"
-          placeholder="Введите код из приложения"
+          placeholder="Enter the code from the app"
           class="mb-2 w-full max-w-xs"
       />
       <Button label="Подтвердить" @click="handleVerifyOtp"/>

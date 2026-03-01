@@ -115,7 +115,7 @@ const onInput = (e) => {
       @blur="hideDropdown"
     />
     <!-- Сообщение об ошибке -->
-    <p v-if="isInvalid" class="text-red-500 text-xs mt-1">Введите время в формате HH:mm</p>
+    <p v-if="isInvalid" class="text-red-500 text-xs mt-1">Enter the time in HH:mm format</p>
 
     <div v-if="showDropdown" class="absolute z-10 mt-1 w-full grid grid-cols-2 gap-2 rounded-md bg-surface-0 border border-surface-200 dark:border-surface-700 shadow-md text-sm p-2 dark:bg-surface-800">
       <div class="overflow-y-auto max-h-48">

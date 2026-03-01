@@ -45,7 +45,7 @@ function goHome() {
                         <img src="/layout/images/logo/logo-gray.png" class="login-footer-logo" style="width: 22px" />
                         <img src="/layout/images/logo/appname-gray.png" class="login-footer-appname ml-2" style="width: 45px" />
                     </div>
-                    <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2024</span>
+                    <span class="text-sm text-surface-500 dark:text-surface-400 mr-4">Copyright 2026</span>
                 </div>
             </Fluid>
         </div>
