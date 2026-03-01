@@ -1,5 +1,5 @@
 <script setup>
-import {computed, nextTick, onMounted, ref} from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useFilters } from '@/composables/RoutesBySegment/useFilters';
 import { useRoutesLoader } from '@/composables/RoutesBySegment/useRoutesLoader';
@@ -32,12 +32,7 @@ const {
 
 const { cities, fetchCities } = useCities();
 const cityOptions = useFlatCityOptions(cities);
-
-const {
-  allAggregators,
-  selectedSites,
-  fetchAggregators
-} = useAggregators();
+const { allAggregators, selectedSites, fetchAggregators } = useAggregators();
 
 const { loadRoutes, routeData, loading, dates, formattedTable, aggregators } = useRoutesLoader(
   {
@@ -56,27 +51,41 @@ const { loadRoutes, routeData, loading, dates, formattedTable, aggregators } = u
   allAggregators
 );
 
-// Диалог
 const showDialog = ref(false);
 const selectedRouteId = ref(null);
 const selectedDate = ref(null);
 const selectedAggregator = ref(null);
+const selectedCellStats = ref(null);
 
 function openDialog({ routeId, date, aggregator }) {
   selectedRouteId.value = routeId;
   selectedDate.value = date;
   selectedAggregator.value = aggregator;
+
+  const cell = formattedTable.value
+    ?.find(row => row.date === date)
+    ?.[aggregator];
+
+  selectedCellStats.value = cell
+    ? {
+        min: cell.competitorMin ?? cell.ourMin ?? null,
+        median: cell.median ?? null,
+        max: cell.competitorMax ?? cell.ourMax ?? null,
+        currency: cell.currency ?? '',
+        ourCount: cell.ourCount ?? 0,
+        competitorCount: cell.competitorCount ?? 0,
+      }
+    : null;
+
   showDialog.value = true;
 }
 
-// Названия городов
 const citiesName = computed(() => {
   const from = cityOptions.value.find(c => c.value === selectedFromCity.value)?.label || '';
   const to = cityOptions.value.find(c => c.value === selectedToCity.value)?.label || '';
-  return from && to ? `${from} - ${to}` : '';
+  return from && to ? `${from} — ${to}` : '';
 });
 
-// Подстановка из query
 const fromQuery = computed(() => Number(route.query.fromCityId));
 const toQuery = computed(() => Number(route.query.toCityId));
 
@@ -148,18 +157,17 @@ function applyFilters() {
       />
     </div>
 
-    <!-- Города + Время -->
     <div class="w-full flex gap-4 mb-6 items-start justify-between">
       <div class="flex flex-col gap-4">
         <FiltersSingleCity
-          label="Город отправления"
+          label="City of departure"
           :cityOptions="cityOptions"
           v-model:selectedCityId="selectedFromCity"
           :loading="loading"
           :required="true"
         />
         <FiltersSingleCity
-          label="Город прибытия"
+          label="City of arrival"
           :cityOptions="cityOptions"
           v-model:selectedCityId="selectedToCity"
           :loading="loading"
@@ -177,7 +185,6 @@ function applyFilters() {
       </div>
     </div>
 
-    <!-- Агрегаторы и пресеты -->
     <div class="w-full flex gap-4 mb-5 justify-between items-start">
       <FiltersAggregators
         :loading="loading"
@@ -185,13 +192,11 @@ function applyFilters() {
         v-model:selectedSites="selectedSites"
         @update:selectedSites="(val) => (selectedSites.value = val)"
       />
-
     </div>
 
-    <!-- Кнопки управления -->
     <div class="flex gap-2 mb-5">
-      <Button label="Сбросить" severity="secondary" @click="resetFilters" :disabled="loading"/>
-      <Button label="Подтвердить" severity="primary" @click="applyFilters" :disabled="loading"/>
+      <Button label="Reset" severity="secondary" @click="resetFilters" :disabled="loading" />
+      <Button label="Confirm" severity="primary" @click="applyFilters" :disabled="loading" />
     </div>
   </div>
 
@@ -216,5 +221,6 @@ function applyFilters() {
     :arrivalTimeTo="arrivalTimeTo"
     :isTransfer="isTransfer"
     :CitiesName="citiesName"
+    :cellStats="selectedCellStats"
   />
 </template>

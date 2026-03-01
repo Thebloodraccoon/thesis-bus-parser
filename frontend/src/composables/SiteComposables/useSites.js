@@ -14,11 +14,11 @@ export function useSites() {
             const response = await SiteService.getAllSites();
             sites.value = response.data;
         } catch (error) {
-            console.error('Ошибка при загрузке сайтов:', error);
+            console.error('Error loading sites:', error);
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
-                detail: 'Не удалось загрузить список сайтов',
+                summary: 'Error',
+                detail: 'Failed to load site list',
                 life: 3000
             });
         } finally {
@@ -32,11 +32,11 @@ export function useSites() {
             const response = await SiteService.getSiteById(id);
             site.value = response.data;
         } catch (error) {
-            console.error('Ошибка при загрузке данных сайта:', error);
+            console.error('Error loading site data:', error);
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
-                detail: 'Не удалось загрузить данные сайта',
+                summary: 'Error',
+                detail: 'Failed to load site data',
                 life: 3000
             });
         } finally {
@@ -50,17 +50,17 @@ export function useSites() {
             await SiteService.createSite(siteData);
             toast.add({
                 severity: 'success',
-                summary: 'Успешно',
-                detail: 'Сайт добавлен',
+                summary: 'Successfully',
+                detail: 'Site added',
                 life: 3000
             });
-            await fetchSites(); // Обновляем список сайтов после создания
+            await fetchSites();
         } catch (error) {
-            console.error('Ошибка при создании сайта:', error);
+            console.error('Mistake when creating a website:', error);
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
-                detail: 'Не удалось добавить сайт',
+                summary: 'Error',
+                detail: 'Unable to add site',
                 life: 3000
             });
         } finally {
@@ -74,16 +74,16 @@ export function useSites() {
             await SiteService.updateSite(id, siteData);
             toast.add({
                 severity: 'success',
-                summary: 'Успешно',
-                detail: 'Данные сайта обновлены',
+                summary: 'Successfully',
+                detail: 'The site data has been updated',
                 life: 3000
             });
         } catch (error) {
-            console.error('Ошибка при обновлении сайта:', error);
+            console.error('Error when updating the site:', error);
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
-                detail: 'Не удалось обновить данные сайта',
+                summary: 'Error',
+                detail: 'Unable to update site data',
                 life: 3000
             });
         } finally {
@@ -97,17 +97,17 @@ export function useSites() {
             await SiteService.deleteSite(id);
             toast.add({
                 severity: 'success',
-                summary: 'Успешно',
-                detail: 'Сайт удален',
+                summary: 'Successfully',
+                detail: 'Site deleted',
                 life: 3000
             });
             await fetchSites(); // Обновляем список сайтов после удаления
         } catch (error) {
-            console.error('Ошибка при удалении сайта:', error);
+            console.error('Error when deleting a site:', error);
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
-                detail: 'Не удалось удалить сайт',
+                summary: 'Error',
+                detail: 'Failed to delete site',
                 life: 3000
             });
         } finally {

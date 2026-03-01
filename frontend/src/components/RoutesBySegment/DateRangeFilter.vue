@@ -8,7 +8,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-// Установка даты от сегодня до +7 по умолчанию, если modelValue пустой
 const today = new Date();
 const in7days = new Date();
 in7days.setDate(today.getDate() + 7);
@@ -33,7 +32,7 @@ defineExpose({ getRange });
 
 <template>
   <div class="flex flex-col gap-1">
-    <label class="text-sm font-medium mb-1">Выберите диапазон дат</label>
+    <label class="text-sm font-medium mb-1">Select a date range</label>
     <Calendar
       :disabled="props.loading"
       v-model="range"
@@ -41,7 +40,7 @@ defineExpose({ getRange });
       :manualInput="false"
       showIcon
       dateFormat="dd.mm.yy"
-      placeholder="Выберите даты"
+      placeholder="Select dates"
       class="w-64"
       :showOtherMonths="true"
       :selectOtherMonths="true"

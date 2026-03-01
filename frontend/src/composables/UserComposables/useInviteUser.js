@@ -18,7 +18,7 @@ export function useInviteUser() {
             toast.add({
                 severity: 'success',
                 summary: 'Успех',
-                detail: 'Пользователь успешно приглашён',
+                detail: 'User Successfully Invited',
                 life: 3000
             });
             inviteUserDialog.value.closeDialog();
@@ -26,7 +26,7 @@ export function useInviteUser() {
         } catch (error) {
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
+                summary: 'Error',
                 detail: error.message,
                 life: 5000
             });

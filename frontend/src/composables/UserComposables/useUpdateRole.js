@@ -10,13 +10,13 @@ export function useUpdateRole() {
             toast.add({
                 severity: 'success',
                 summary: 'Успех',
-                detail: 'Роль пользователя успешно изменена',
+                detail: 'User role changed successfully',
                 life: 3000
             });
         } catch (error) {
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
+                summary: 'An error occurred',
                 detail: error.message,
                 life: 5000
             });

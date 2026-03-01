@@ -28,12 +28,13 @@ const model = ref([
         ]
     },
     {
+        label: 'Celery Tasks Management',
         visible: isAdmin.value,
         items: [
             {
-                label: 'All Users',
-                icon: 'pi pi-users',
-                to: '/users'
+                label: 'Tasks List',
+                icon: 'pi pi-clock',
+                to: '/task'
             }
         ]
     },
@@ -55,22 +56,23 @@ const model = ref([
         ]
     },
     {
+        visible: isAdmin.value,
+        label: 'Users Management',
+        items: [
+            {
+                label: 'All Users',
+                icon: 'pi pi-users',
+                to: '/users'
+            }
+        ]
+    },
+    {
+        label: 'Geo docs',
         items: [
             {
                 label: 'List of cities',
                 icon: 'pi pi-building',
                 to: '/city/list'
-            }
-        ]
-    },
-    {
-        label: 'Celery Tasks Management',
-        visible: isAdmin.value,
-        items: [
-            {
-                label: 'Tasks List',
-                icon: 'pi pi-clock',
-                to: '/task'
             }
         ]
     }

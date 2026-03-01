@@ -14,7 +14,7 @@ export function useDeleteUser(deleteUserDialogRef) {
             toast.add({
                 severity: 'success',
                 summary: 'Успех',
-                detail: 'Пользователь успешно удалён',
+                detail: 'User successfully deleted',
                 life: 3000
             });
             deleteUserDialogRef.value?.closeDialog();
@@ -22,7 +22,7 @@ export function useDeleteUser(deleteUserDialogRef) {
         } catch (error) {
             toast.add({
                 severity: 'error',
-                summary: 'Ошибка',
+                summary: 'Error',
                 detail: error.message,
                 life: 5000
             });

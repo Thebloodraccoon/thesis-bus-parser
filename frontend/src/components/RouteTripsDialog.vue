@@ -25,14 +25,12 @@ const toast = useToast();
 const loading = ref(false);
 const tripsData = ref({ total_segments_count: 0, trips: [] });
 
-// ── Chart ────────────────────────────────────────────────────
 const chartType = ref('bar');
 const chartTypeOptions = [
-  { label: 'Барний',   value: 'bar' },
-  { label: 'Лінійний', value: 'line' },
+  { label: 'Bar',   value: 'bar' },
+  { label: 'Linear', value: 'line' },
 ];
 
-// ── Derived data ─────────────────────────────────────────────
 const trips = computed(() => tripsData.value.trips || []);
 const currency = computed(() => trips.value[0]?.currency || '');
 
@@ -69,7 +67,7 @@ const chartData = computed(() => {
   return {
     labels,
     datasets: [{
-      label: 'Ціна',
+      label: 'Price',
       data,
       backgroundColor: data.map(p => colorFor(p).bg),
       borderColor:     data.map(p => colorFor(p).border),
@@ -89,8 +87,8 @@ const chartOptions = computed(() => ({
     legend: { display: false },
     tooltip: {
       callbacks: {
-        title: (ctx) => `Відправлення: ${ctx[0].label}`,
-        label: (ctx) => `Ціна: ${formatPrice(ctx.parsed.y, currency.value)}`
+        title: (ctx) => `Departure: ${ctx[0].label}`,
+        label: (ctx) => `Price: ${formatPrice(ctx.parsed.y, currency.value)}`
       }
     }
   },
@@ -103,7 +101,6 @@ const chartOptions = computed(() => ({
   }
 }));
 
-// ── Fetch ────────────────────────────────────────────────────
 const fetchTrips = async () => {
   if (!props.routeId) return;
   loading.value = true;
@@ -126,7 +123,7 @@ const fetchTrips = async () => {
     });
     tripsData.value = data;
   } catch {
-    toast.add({ severity: 'error', summary: 'Помилка', detail: 'Не вдалося завантажити сегменти', life: 3000 });
+    toast.add({ severity: 'error', summary: 'FAILED', detail: 'Segments could not load', life: 3000 });
   } finally {
     loading.value = false;
   }
@@ -134,7 +131,6 @@ const fetchTrips = async () => {
 
 watch(() => props.visible, (val) => { if (val) fetchTrips(); });
 
-// ── Helpers ──────────────────────────────────────────────────
 const fmt = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return { date: '—', time: '—' };
   const [, month, day] = dateStr.split('-');
@@ -149,9 +145,8 @@ const fmt = (dateStr, timeStr) => {
     :visible="props.visible"
     @update:visible="emit('update:visible', $event)"
     modal
-    :style="{ width: '98vw', maxHeight: '100vh' }"
+    :style="{ width: '70vw', maxHeight: '100vh' }"
   >
-    <!-- ── Header ─────────────────────────────────────────── -->
     <template #header>
       <div class="flex flex-col gap-1 leading-tight">
         <span class="font-bold text-base">📍 {{ props.CitiesName }}</span>
@@ -159,15 +154,14 @@ const fmt = (dateStr, timeStr) => {
           <span>📅 {{ formatDate(props.selectedDate, { showTime: false, showSeconds: false }) }}</span>
           <span>🏢 {{ props.aggregatorName }}</span>
           <span v-if="props.departureTimeFrom">🕐 {{ props.departureTimeFrom }} — {{ props.departureTimeTo }}</span>
-          <span v-if="props.arrivalTimeFrom">🕑 приб: {{ props.arrivalTimeFrom }} — {{ props.arrivalTimeTo }}</span>
+          <span v-if="props.arrivalTimeFrom">🕑 arrival: {{ props.arrivalTimeFrom }} — {{ props.arrivalTimeTo }}</span>
           <span v-if="props.isTransfer !== null && props.isTransfer !== undefined">
-            {{ props.isTransfer ? '🔀 пересадкові' : '➡️ прямі' }}
+            {{ props.isTransfer ? '🔀 transfer' : '➡️ direct' }}
           </span>
         </div>
       </div>
     </template>
 
-    <!-- ── Skeleton ───────────────────────────────────────── -->
     <div v-if="loading" class="flex flex-col gap-4">
       <div class="grid grid-cols-3 gap-3">
         <Skeleton height="80px" v-for="n in 3" :key="n" />
@@ -176,28 +170,25 @@ const fmt = (dateStr, timeStr) => {
       <Skeleton height="260px" />
     </div>
 
-    <!-- ── Main content ───────────────────────────────────── -->
     <div v-else class="flex flex-col gap-5 pb-2">
-
-      <!-- 1. МІН / МЕДІАНА / МАКС ─────────────────────────── -->
       <div class="grid grid-cols-3 gap-3">
 
         <div class="rounded-xl border border-surface p-4 text-center">
-          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">МІН</div>
+          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Min</div>
           <div class="text-2xl font-bold text-blue-500">
             {{ formatPrice(stats.min, currency) }}
           </div>
         </div>
 
         <div class="rounded-xl border border-surface p-4 text-center">
-          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">МЕДІАНА</div>
+          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Median</div>
           <div class="text-2xl font-bold text-orange-400">
             {{ formatPrice(stats.median, currency) }}
           </div>
         </div>
 
         <div class="rounded-xl border border-surface p-4 text-center">
-          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">МАКС</div>
+          <div class="text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Max</div>
           <div class="text-2xl font-bold text-red-500">
             {{ formatPrice(stats.max, currency) }}
           </div>
@@ -205,26 +196,24 @@ const fmt = (dateStr, timeStr) => {
 
       </div>
 
-      <!-- 2. Графік ────────────────────────────────────────── -->
       <div class="rounded-xl border border-surface p-4" v-if="chartData">
 
         <!-- Toolbar -->
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-4 text-sm">
-            <span class="font-semibold">📊 Ціни по відправленнях</span>
+            <span class="font-semibold">📊 Price of places</span>
             <!-- Color legend -->
             <span class="flex items-center gap-1 text-xs text-surface-400">
-              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> мін
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> min
             </span>
             <span class="flex items-center gap-1 text-xs text-surface-400">
-              <span class="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block"></span> решта
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block"></span> other
             </span>
             <span class="flex items-center gap-1 text-xs text-surface-400">
-              <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> макс
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> max
             </span>
           </div>
 
-          <!-- Chart type switcher -->
           <SelectButton
             v-model="chartType"
             :options="chartTypeOptions"
@@ -240,15 +229,13 @@ const fmt = (dateStr, timeStr) => {
         </div>
       </div>
 
-      <!-- No data for chart -->
       <div v-else class="rounded-xl border border-surface p-4 text-center text-surface-400 text-sm italic">
-        Недостатньо даних для графіку
+        Not enough data for the graph
       </div>
 
-      <!-- 3. Таблиця сегментів ──────────────────────────────── -->
       <div>
         <div class="font-semibold mb-2 text-sm">
-          🚌 Сегменти
+          🚌 Segments
           <span class="text-surface-400 font-normal ml-1">({{ tripsData.total_segments_count }})</span>
         </div>
 
@@ -262,7 +249,7 @@ const fmt = (dateStr, timeStr) => {
             row.price === stats.max ? 'trip-max' : ''"
         >
 
-          <Column header="Відпр." sortable sortField="departure_time" style="min-width:90px">
+          <Column header="Departure" sortable sortField="departure_time" style="min-width:90px">
             <template #body="{ data }">
               <div class="leading-tight">
                 <div class="text-xs text-surface-400">{{ fmt(data.departure_date, data.departure_time).date }}</div>
@@ -271,7 +258,7 @@ const fmt = (dateStr, timeStr) => {
             </template>
           </Column>
 
-          <Column header="Приб." sortable sortField="arrival_time" style="min-width:90px">
+          <Column header="Arrival" sortable sortField="arrival_time" style="min-width:90px">
             <template #body="{ data }">
               <div class="leading-tight">
                 <div class="text-xs text-surface-400">{{ fmt(data.arrival_date, data.arrival_time).date }}</div>
@@ -280,31 +267,31 @@ const fmt = (dateStr, timeStr) => {
             </template>
           </Column>
 
-          <Column header="Трив." style="min-width:65px">
+          <Column header="Duration" style="min-width:65px">
             <template #body="{ data }">
               <span class="text-xs text-surface-400">{{ data.duration?.slice(0,5) ?? '—' }}</span>
             </template>
           </Column>
 
-          <Column field="from_station" header="Звідки" style="min-width:150px">
+          <Column field="from_station" header="From station" style="min-width:150px">
             <template #body="{ data }">
               <span class="text-xs">{{ data.from_station }}</span>
             </template>
           </Column>
 
-          <Column field="to_station" header="Куди" style="min-width:150px">
+          <Column field="to_station" header="To station" style="min-width:150px">
             <template #body="{ data }">
               <span class="text-xs">{{ data.to_station }}</span>
             </template>
           </Column>
 
-          <Column field="carrier_name" header="Перевізник" style="min-width:120px">
+          <Column field="carrier_name" header="Carrier" style="min-width:120px">
             <template #body="{ data }">
               <span class="text-sm font-medium">{{ data.carrier_name }}</span>
             </template>
           </Column>
 
-          <Column header="Ціна" sortable sortField="price" style="min-width:110px">
+          <Column header="Price" sortable sortField="price" style="min-width:110px">
             <template #body="{ data }">
               <span
                 class="font-bold text-base whitespace-nowrap"
@@ -319,20 +306,20 @@ const fmt = (dateStr, timeStr) => {
             </template>
           </Column>
 
-          <Column header="Тип" style="min-width:75px">
+          <Column header="Type" style="min-width:75px">
             <template #body="{ data }">
-              <span v-if="data.is_transfer" class="text-xs text-orange-400">Пересадка</span>
-              <span v-else class="text-xs text-green-400">Прямий</span>
+              <span v-if="data.is_transfer" class="text-xs text-orange-400">Transfer</span>
+              <span v-else class="text-xs text-green-400">Direct</span>
             </template>
           </Column>
 
-          <Column header="Місця" sortable sortField="available_seats" style="min-width:65px">
+          <Column header="Places" sortable sortField="available_seats" style="min-width:65px">
             <template #body="{ data }">
               <span class="text-sm">{{ data.available_seats ?? '—' }}</span>
             </template>
           </Column>
 
-          <Column header="Акт." style="min-width:90px">
+          <Column header="Actualized" style="min-width:90px">
             <template #body="{ data }">
               <span class="text-xs text-surface-400">
                 {{ formatDate(data.price_updated_at, { showSeconds: false, showYear: false }) }}
@@ -343,7 +330,7 @@ const fmt = (dateStr, timeStr) => {
         </DataTable>
 
         <div v-else class="text-surface-400 italic text-sm text-center py-8">
-          Немає сегментів за вибраними фільтрами
+          No data
         </div>
       </div>
 

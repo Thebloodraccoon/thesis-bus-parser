@@ -10,7 +10,6 @@ export function useTaskDialog() {
     const saving = ref(false);
     const toast = useToast();
 
-    // Открытие диалога и загрузка данных
     const openDialog = async (taskId) => {
         isDialogVisible.value = true;
         loading.value = true;
@@ -45,16 +44,16 @@ export function useTaskDialog() {
             toast.add({
                 severity: 'success',
                 summary: 'Успех',
-                detail: 'Расписание успешно обновлено',
+                detail: 'Schedule Successfully Updated',
                 life: 3000
             });
             closeDialog();
         } catch (err) {
-            error.value = 'Ошибка обновления расписания';
+            error.value = 'Schedule update error';
             toast.add({
                 severity: 'error',
                 summary: 'Ошибка',
-                detail: 'Ошибка обновления расписания',
+                detail: 'Schedule update error',
                 life: 5000
             });
             closeDialog();

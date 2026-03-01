@@ -33,7 +33,7 @@ const props = defineProps({
     </div>
 
     <DataTable v-else :value="routesData" class="min-w-max" scrollable scrollDirection="horizontal">
-      <Column field="route" header="Маршрут" frozen alignFrozen="left" style="min-width: 200px">
+      <Column field="route" header="Segment" frozen alignFrozen="left" style="min-width: 200px">
         <template #body="slotProps">
           <router-link
             :to="{
