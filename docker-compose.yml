@@ -1,7 +1,164 @@
-name: diplom
+name: thesis
 
-include:
-  - ./infra/docker-compose.yml
-  - ./parser/docker-compose.yml
-  - ./backend/docker-compose.yml
-  - ./frontend/docker-compose.yml
+services:
+  thesis_db:
+    image: postgres:13
+    container_name: thesis_db
+    shm_size: "2g"
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DB}
+      TZ: Europe/Kyiv
+    ports:
+      - "5432:5432"
+    volumes:
+      - infra_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - thesis_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  thesis_redis:
+    image: redis:6.2-alpine
+    container_name: thesis_redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - infra_redis_data:/data
+    networks:
+      - thesis_network
+
+  thesis_pgadmin:
+    image: dpage/pgadmin4
+    container_name: thesis_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      thesis_db:
+        condition: service_healthy
+    volumes:
+      - infra_pgadmin_data:/var/lib/pgadmin
+    env_file:
+      - .env
+    networks:
+      - thesis_network
+
+  thesis_migrate:
+    build:
+      context: .
+      dockerfile: app/parser/Dockerfile
+    container_name: thesis_migrate
+    env_file:
+      - .env
+    depends_on:
+      thesis_db:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/code
+    volumes:
+      - .:/code
+    command: alembic -c app/core/alembic.ini upgrade head
+    working_dir: /code
+    networks:
+      - thesis_network
+
+  thesis_worker:
+    build:
+      context: .
+      dockerfile: app/parser/Dockerfile
+    container_name: thesis_worker
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/code
+    command: >
+      bash -c "
+         celery -A app.parser.settings.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
+         celery -A app.parser.settings.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
+      "
+    depends_on:
+      thesis_migrate:
+        condition: service_completed_successfully
+    volumes:
+      - .:/code
+    networks:
+      - thesis_network
+
+  thesis_beat:
+    build:
+      context: .
+      dockerfile: app/parser/Dockerfile
+    container_name: thesis_beat
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/code
+    command: celery -A app.parser.settings.celery_app beat --loglevel=info
+    depends_on:
+      thesis_migrate:
+        condition: service_completed_successfully
+    volumes:
+      - .:/code
+    networks:
+      - thesis_network
+
+  thesis_web:
+    build:
+      context: .
+      dockerfile: app/backend/Dockerfile
+    container_name: thesis_web
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      thesis_db:
+        condition: service_healthy
+      thesis_redis:
+        condition: service_started
+      thesis_migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/code
+    volumes:
+      - .:/code
+    networks:
+      - thesis_network
+
+  thesis_frontend:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: thesis_frontend
+    ports:
+      - "8080:5173"
+    volumes:
+      - ./app/frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev", "--", "--host"]
+    networks:
+      - thesis_network
+
+volumes:
+  infra_postgres_data:
+  infra_pgadmin_data:
+  infra_redis_data:
+
+networks:
+  thesis_network:
+    driver: bridge
