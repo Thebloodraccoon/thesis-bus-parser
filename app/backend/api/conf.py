@@ -1,12 +1,14 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from typing import Generator
 
+from redis import asyncio as aioredis
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session, sessionmaker
 from app.core.config import CoreSettings
 
-class BackendSettings(CoreSettings):
+
+class Settings(CoreSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
 
@@ -18,19 +20,30 @@ class BackendSettings(CoreSettings):
 
     ALLOWED_HOSTS: list[str] = ["*"]
 
+    @asynccontextmanager
+    async def get_redis(self):
+        """Asynchronous context manager for Redis connections."""
 
-settings = BackendSettings()
+        client = aioredis.from_url(self.REDIS_URL, decode_responses=True)
+        try:
+            yield client
+        finally:
+            await client.aclose()
 
+
+settings = Settings()
 
 engine = create_engine(settings.DATABASE_URL)
 
-Base = automap_base()
-Base.prepare(autoload_with=engine)
+# automap_base for Celery-tables
+AutomapBase = automap_base()
+AutomapBase.prepare(autoload_with=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@contextmanager
 def get_db() -> Generator[Session, None, None]:
+    """Contextual session DB manager for use in FastAPI Depends."""
+
     db = SessionLocal()
     try:
         yield db

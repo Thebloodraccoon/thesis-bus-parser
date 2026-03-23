@@ -150,7 +150,9 @@ services:
     volumes:
       - ./app/frontend:/app
       - /app/node_modules
-    command: ["npm", "run", "dev", "--", "--host"]
+    stdin_open: true
+    tty: true
+    command: [ "npm", "run", "dev", "--", "--host" ]
     networks:
       - thesis_network
 

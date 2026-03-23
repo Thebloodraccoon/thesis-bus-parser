@@ -1,4 +1,4 @@
-import axios from '@/api/axios';
+import axios from 'axios';
 import router from '@/router';
 import { API_BASE_URL } from '@/config';
 import { AuthService } from '@/service/AuthService';

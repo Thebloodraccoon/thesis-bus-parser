@@ -7,40 +7,14 @@ import AppSidebar from './AppSidebar.vue';
 import { AuthService } from '@/service/AuthService';
 import { useToast } from 'primevue/usetoast';
 
-const { onMenuToggle, showConfigSidebar, showSidebar, toggleDarkMode, layoutConfig } = useLayout();
+const { onMenuToggle, toggleDarkMode, layoutConfig } = useLayout();
 
-const darkTheme = ref(layoutConfig.darkTheme); // используем для SelectButton
-
-const searchInput = ref(null);
-const searchActive = ref(false);
+const darkTheme = ref(layoutConfig.darkTheme);
 const toast = useToast();
 
-const themeOptions = ref([
-    { name: 'Light', value: false },
-    { name: 'Dark', value: true }
-]);
 
 const onMenuButtonClick = () => {
     onMenuToggle();
-};
-
-const activateSearch = () => {
-    searchActive.value = true;
-    setTimeout(() => {
-        searchInput.value?.$el?.focus();
-    }, 100);
-};
-
-const deactivateSearch = () => {
-    searchActive.value = false;
-};
-
-const onConfigButtonClick = () => {
-    showConfigSidebar();
-};
-
-const onSidebarButtonClick = () => {
-    showSidebar();
 };
 
 const handleLogout = async () => {
@@ -49,7 +23,7 @@ const handleLogout = async () => {
         localStorage.removeItem('access_token');
         toast.add({
             severity: 'success',
-            summary: 'Успех',
+            summary: 'Success',
             detail: 'You have successfully logged out of your account',
             life: 3000
         });
@@ -82,7 +56,6 @@ const handleLogout = async () => {
         </div>
 
         <div class="topbar-end mr-20 items-center flex gap-4">
-            <!-- Switch для смены темы -->
             <div class="flex items-center gap-2 mr-10">
                 <i class="pi pi-sun" />
                 <InputSwitch v-model="darkTheme" @change="toggleDarkMode" />
@@ -91,7 +64,7 @@ const handleLogout = async () => {
 
             <a href="#" class="flex items-center hover:border-gray-700 duration-200" @click.prevent="handleLogout">
                 <i class="pi pi-fw pi-sign-out mr-2"></i>
-                <span>Выход</span>
+                <span>Logout</span>
             </a>
         </div>
     </div>
