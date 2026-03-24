@@ -12,8 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from thesis.core.models import CityModel
-from thesis.parser.app.orchestrator import RouteData
-from thesis.parser.app.schemas import CityCreate, CitySchema, CurrencySchema
+from thesis.parser.app.schemas import CityCreate, CitySchema, CurrencySchema, RouteData
 from thesis.parser.app.repository import (
     CityRepository,
     CurrencyRepository,

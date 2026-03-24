@@ -146,7 +146,7 @@ onUnmounted(() => {
 <template>
   <div :class="'login-body flex min-h-screen ' + (!isDarkTheme ? 'layout-light' : 'layout-dark')">
     <div class="login-image w-6/12 h-screen hidden md:block" style="max-width: 490px">
-      <img :src="'/demo/images/pages/login-' + (isDarkTheme ? 'ondark' : 'onlight') + '.png'" alt="atlantis"
+      <img :src="'/layout/images/login-' + (isDarkTheme ? 'ondark' : 'onlight') + '.png'" alt="atlantis"
            class="h-screen w-full"/>
     </div>
     <div class="login-panel w-full" style="background: var(--surface-ground)">

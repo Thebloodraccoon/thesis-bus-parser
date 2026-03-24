@@ -6,7 +6,7 @@ const routes = [
     {
         path: '/documentation',
         name: 'documentation',
-        component: () => import('@/views/utilities/Documentation.vue')
+        component: () => import('@/views/Documentation.vue')
     },
 
     {
@@ -39,7 +39,7 @@ const routes = [
                     requiresAuth: true,
                     requiresAdmin: true
                 },
-                component: () => import('@/views/user-management/UserPage.vue')
+                component: () => import('@/views/UserPage.vue')
             },
             {
                 path: '/task',
@@ -52,7 +52,7 @@ const routes = [
                     {
                         path: '',
                         name: 'task list',
-                        component: () => import('@/views/tasks/TaskPage.vue')
+                        component: () => import('@/views/TaskPage.vue')
                     },
                 ]
             },
@@ -92,7 +92,7 @@ const routes = [
                     {
                         path: 'list',
                         name: 'Cities List',
-                        component: () => import('@/views/cities/CitiesList.vue')
+                        component: () => import('@/views/CitiesList.vue')
                     }
                 ]
             }
@@ -101,12 +101,12 @@ const routes = [
     {
         path: '/auth/login',
         name: 'login',
-        component: () => import('@/views/pages/auth/Login.vue')
+        component: () => import('@/views/Login.vue')
     },
     {
         path: '/:pathMatch(.*)*',
         name: 'notfound',
-        component: () => import('@/views/pages/NotFound.vue')
+        component: () => import('@/views/NotFound.vue')
     }
 ];
 

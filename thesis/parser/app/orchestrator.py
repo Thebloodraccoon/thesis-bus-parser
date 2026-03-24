@@ -5,7 +5,7 @@ import random
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List
 
 from thesis.parser.app.repository import (
     db_session,
@@ -14,7 +14,7 @@ from thesis.parser.app.repository import (
     TripRepository,
     TripHistoryRepository,
 )
-from thesis.parser.app.schemas import CitySchema
+from thesis.parser.app.schemas import RouteData
 from thesis.parser.app.scrapers.base import BaseScraper
 from thesis.parser.app.services import RouteFetcher
 from thesis.parser.app.settings.logger import get_logger
@@ -29,20 +29,6 @@ class ScraperConfig:
 
     threads: int = 5
     max_duration_seconds: int = 86_400
-
-
-@dataclass
-class RouteData:
-    """One scraping task: a city pair for a specific date."""
-
-    departure_city: CitySchema
-    arrival_city: CitySchema
-    route_id: int
-    trip_id: str
-    from_date: datetime
-    to_date: datetime
-    departure_station_id: Optional[int] = None
-    arrival_station_id: Optional[int] = None
 
 
 @dataclass

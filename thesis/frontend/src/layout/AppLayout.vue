@@ -3,7 +3,6 @@ import { useLayout } from '@/layout/composables/layout';
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 import AppBreadCrumb from './AppBreadcrumb.vue';
 import AppConfig from './AppConfig.vue';
-import AppProfileMenu from './AppProfileMenu.vue';
 import AppTopbar from './AppTopbar.vue';
 
 const { layoutConfig, layoutState, watchSidebarActive, unbindOutsideClickListener } = useLayout();
@@ -53,7 +52,6 @@ const containerClass = computed(() => {
 
             <div class="layout-mask"></div>
         </div>
-        <AppProfileMenu />
         <AppConfig />
 
         <Toast></Toast>

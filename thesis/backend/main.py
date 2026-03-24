@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from thesis.backend.api.auth import AuthService
-from thesis.backend.api.conf import engine, settings
-from thesis.backend.api.routers import (
+from thesis.backend.app.auth import AuthService
+from thesis.backend.app.conf import engine, settings
+from thesis.backend.app.routers import (
     auth_router,
     city_router,
     preset_router,
@@ -71,4 +71,4 @@ app.include_router(route_router)
 
 
 if __name__ == "__main__":
-    uvicorn.run("app.backend.main:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("thesis.backend.main:app", host="0.0.0.0", port=8000, reload=False)

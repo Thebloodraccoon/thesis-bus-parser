@@ -79,3 +79,17 @@ class TicketData(BaseModel):
     currency: str = Field(max_length=5)
     available_seats: Optional[int]
     is_transfer: bool = False
+
+class RouteData(BaseModel):
+    """One scraping task: a city pair for a specific date."""
+
+    departure_city: CitySchema
+    arrival_city: CitySchema
+    route_id: int
+    trip_id: str
+    from_date: datetime
+    to_date: datetime
+    departure_station_id: Optional[int] = None
+    arrival_station_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)

@@ -86,8 +86,8 @@ services:
       - PYTHONPATH=/code
     command: >
       bash -c "
-         celery -A thesis.parser.settings.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
-         celery -A thesis.parser.settings.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
+           celery -A thesis.parser.app.tasks.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
+           celery -A thesis.parser.app.tasks.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
       "
     depends_on:
       thesis_migrate:
@@ -107,7 +107,7 @@ services:
       - .env
     environment:
       - PYTHONPATH=/code
-    command: celery -A thesis.parser.settings.celery_app beat --loglevel=info
+    command: celery -A thesis.parser.app.tasks.celery_app beat --loglevel=info
     depends_on:
       thesis_migrate:
         condition: service_completed_successfully

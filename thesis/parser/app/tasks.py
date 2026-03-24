@@ -6,6 +6,7 @@ from typing import List
 from celery import Celery
 from celery.exceptions import SoftTimeLimitExceeded
 from kombu import Exchange, Queue
+from sqlalchemy_celery_beat.schedulers import DatabaseScheduler  # type: ignore
 
 from thesis.parser.app.orchestrator import ScraperPipeline, ScraperConfig
 from thesis.parser.app.scrapers.inbus import InbusScraper
@@ -25,37 +26,42 @@ from thesis.parser.app.settings.logger import get_logger
 
 logger = get_logger(__name__)
 
-app = Celery(
+celery_app = Celery(
     "scraper",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["scraper.tasks"],
+    include=["thesis.parser.app.tasks"],
 )
 
-app.conf.update(
-    timezone="Europe/Kiev",
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
-    result_expires=86_400,
-    worker_prefetch_multiplier=1,
-    task_acks_late=True,
-    broker_connection_retry_on_startup=True,
-    task_time_limit=86_400,
-    task_soft_time_limit=82_800,
-    broker_transport_options={"visibility_timeout": 90_000},
-)
+config = {
+    "beat_dburi": settings.DATABASE_URL,
+    "beat_scheduler": DatabaseScheduler,
+    "timezone": "Europe/Kiev",
+    "task_serializer": "json",
+    "accept_content": ["json"],
+    "result_serializer": "json",
+    "result_expires": 86400,
+    "worker_prefetch_multiplier": 1,
+    "task_acks_late": True,
+    "beat_max_loop_interval": 60,
+    "broker_connection_retry_on_startup": True,
+    "task_time_limit": 86400,
+    "task_soft_time_limit": 82800,
+    "broker_transport_options": {"visibility_timeout": 90000},
+}
 
-app.conf.task_queues = [
+celery_app.conf.task_queues = [
     Queue("parsing", Exchange("parsing"), routing_key="parsing"),
     Queue("high_priority", Exchange("high_priority"), routing_key="high_priority"),
 ]
 
-app.conf.task_routes = {
-    "scraper.tasks.run_scraper": {"queue": "parsing"},
-    "scraper.tasks.update_cities": {"queue": "high_priority"},
-    "scraper.tasks.update_currencies": {"queue": "high_priority"},
+celery_app.conf.task_routes = {
+    "thesis.parser.app.tasks.run_scraper": {"queue": "parsing"},
+    "thesis.parser.app.tasks.update_cities": {"queue": "high_priority"},
+    "thesis.parser.app.tasks.update_currencies": {"queue": "high_priority"},
 }
+
+celery_app.conf.update(config)
 
 # Registry
 _SCRAPERS = {
@@ -75,7 +81,7 @@ def _run(coro):
 
 
 # Tasks
-@app.task(name="scraper.tasks.run_scraper", bind=True)
+@celery_app.task(name="scraper.tasks.run_scraper", bind=True)
 def run_scraper(
     self,
     site_name: str,
@@ -110,7 +116,7 @@ def run_scraper(
         raise
 
 
-@app.task(name="scraper.tasks.update_cities")
+@celery_app.task(name="scraper.tasks.update_cities")
 def update_cities() -> str:
     """Refresh city directory and resolve site-specific city IDs."""
 
@@ -128,7 +134,7 @@ def update_cities() -> str:
     return "City update completed."
 
 
-@app.task(name="scraper.tasks.update_currencies")
+@celery_app.task(name="scraper.tasks.update_currencies")
 def update_currencies() -> str:
     """Fetch current exchange rates from the NBU API."""
 
