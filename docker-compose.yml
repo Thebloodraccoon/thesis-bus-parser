@@ -58,7 +58,7 @@ services:
   thesis_migrate:
     build:
       context: .
-      dockerfile: app/parser/Dockerfile
+      dockerfile: thesis/parser/Dockerfile
     container_name: thesis_migrate
     env_file:
       - .env
@@ -69,7 +69,7 @@ services:
       - PYTHONPATH=/code
     volumes:
       - .:/code
-    command: alembic -c app/core/alembic.ini upgrade head
+    command: alembic -c thesis/core/alembic.ini upgrade head
     working_dir: /code
     networks:
       - thesis_network
@@ -77,7 +77,7 @@ services:
   thesis_worker:
     build:
       context: .
-      dockerfile: app/parser/Dockerfile
+      dockerfile: thesis/parser/Dockerfile
     container_name: thesis_worker
     restart: always
     env_file:
@@ -86,8 +86,8 @@ services:
       - PYTHONPATH=/code
     command: >
       bash -c "
-         celery -A app.parser.settings.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
-         celery -A app.parser.settings.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
+         celery -A thesis.parser.settings.celery_app worker --concurrency=1 -Q high_priority --loglevel=info --hostname=worker.high_priority@%h &
+         celery -A thesis.parser.settings.celery_app worker --autoscale=25,7 -Q parsing --loglevel=info --hostname=worker.parsing@%h
       "
     depends_on:
       thesis_migrate:
@@ -100,14 +100,14 @@ services:
   thesis_beat:
     build:
       context: .
-      dockerfile: app/parser/Dockerfile
+      dockerfile: thesis/parser/Dockerfile
     container_name: thesis_beat
     restart: always
     env_file:
       - .env
     environment:
       - PYTHONPATH=/code
-    command: celery -A app.parser.settings.celery_app beat --loglevel=info
+    command: celery -A thesis.parser.settings.celery_app beat --loglevel=info
     depends_on:
       thesis_migrate:
         condition: service_completed_successfully
@@ -119,7 +119,7 @@ services:
   thesis_web:
     build:
       context: .
-      dockerfile: app/backend/Dockerfile
+      dockerfile: thesis/backend/Dockerfile
     container_name: thesis_web
     restart: always
     ports:
@@ -142,14 +142,14 @@ services:
 
   thesis_frontend:
     build:
-      context: ./app/frontend
+      context: ./thesis/frontend
       dockerfile: Dockerfile
     container_name: thesis_frontend
     ports:
       - "8080:5173"
     volumes:
-      - ./app/frontend:/app
-      - /app/node_modules
+      - ./thesis/frontend:/thesis
+      - /thesis/node_modules
     stdin_open: true
     tty: true
     command: [ "npm", "run", "dev", "--", "--host" ]

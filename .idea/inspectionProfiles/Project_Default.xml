@@ -168,6 +168,13 @@
           <option value="tzlocal" />
           <option value="websockets" />
           <option value="wrapt" />
+          <option value="et_xmlfile" />
+          <option value="httptools" />
+          <option value="openpyxl" />
+          <option value="psycopg2-binary" />
+          <option value="python-multipart" />
+          <option value="uvloop" />
+          <option value="watchfiles" />
         </list>
       </option>
     </inspection_tool>
@@ -190,9 +197,10 @@
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
-          <option value="numpy.ndarray.fillna" />
+          <option value="numpy.ndarray.*" />
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="SqlNoDataSourceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>
