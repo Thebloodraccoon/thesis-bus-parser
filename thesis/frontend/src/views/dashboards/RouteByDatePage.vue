@@ -8,6 +8,7 @@ import { useAggregators } from "@/composables/RoutesByDate/useAggregators";
 import { useCities } from "@/composables/RoutesByDate/useCities";
 import { usePagination } from "@/composables/RoutesByDate/usePagination";
 import { useRoutes } from "@/composables/RoutesByDate/useRoutes";
+import { useExport } from "@/composables/RoutesByDate/useExport";
 
 // Trip Dialog
 const showTripsDialog = ref(false);
@@ -43,15 +44,24 @@ const { fetchRoutes, routesData, loading, totalRecords, firstRecord, lastRecord 
     fromCityIds, toCityIds, departureTimeFrom, departureTimeTo, arrivalTimeFrom, arrivalTimeTo, isTransfer
 });
 
-const selectedPresetId = ref(null);
+const { exportToCSV, exporting } = useExport({
+  selectedDate,
+  fromCityIds,
+  toCityIds,
+  departureTimeFrom,
+  departureTimeTo,
+  arrivalTimeFrom,
+  arrivalTimeTo,
+  isTransfer,
+  selectedSites,
+});
 
-// Удаляем watch на фильтры для weekDates и fetchWeekData
-// Вместо этого вызываем fetchWeekData и weekDates только в applyFilters и resetFilters
+const selectedPresetId = ref(null);
 
 const updateWeekDatesAndData = () => {
   weekDates.value = getNextWeekDates(selectedDate.value);
-  selectedWeekDate.value = null; // сбрасываем выбор
-  weekDataCache.value = {}; // сбрасываем кэш
+  selectedWeekDate.value = null;
+  weekDataCache.value = {};
   fetchWeekData();
 };
 
@@ -72,7 +82,6 @@ const resetFilters = async () => {
 };
 
 const applyFilters = async () => {
-  // Сбрасываем страницу на первую при применении новых фильтров
   page.value = 1;
   await fetchRoutes();
   updateWeekDatesAndData();
@@ -85,15 +94,11 @@ const isReady = computed(() => citiesLoaded.value && aggregatorsLoaded.value);
 
 // --- Лента дат следующей недели ---
 function getNextWeekDates(baseDate) {
-  // Получаем понедельник следующей недели относительно baseDate
   const date = new Date(baseDate);
   const day = date.getDay();
-  // 0 - воскресенье, 1 - понедельник ...
-  // Сдвиг до понедельника следующей недели
   const diffToNextMonday = ((8 - day) % 7) || 7;
   const monday = new Date(date);
   monday.setDate(date.getDate() + diffToNextMonday);
-  // Формируем массив дат пн-вс
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -102,8 +107,7 @@ function getNextWeekDates(baseDate) {
 }
 
 const weekDates = ref(getNextWeekDates(selectedDate.value));
-const selectedWeekDate = ref(null); // null = показываем основную дату
-
+const selectedWeekDate = ref(null);
 const weekDataCache = ref({});
 const weekLoading = ref(false);
 
@@ -116,12 +120,10 @@ async function fetchWeekData() {
   const cache = {};
   const promises = weekDates.value.map(async (date) => {
     const dateKey = getDateKey(date);
-    // Если уже есть в кэше - не грузим
     if (weekDataCache.value[dateKey]) {
       cache[dateKey] = weekDataCache.value[dateKey];
       return;
     }
-    // Создаём временные reactive-объекты для useRoutes
     const tempDate = ref(date);
     const tempPage = ref(page.value);
     const tempSize = ref(size.value);
@@ -149,7 +151,6 @@ async function fetchWeekData() {
   weekLoading.value = false;
 }
 
-
 const tableRoutesData = computed(() => {
   if (selectedWeekDate.value) {
     const key = getDateKey(selectedWeekDate.value);
@@ -164,7 +165,6 @@ const tableTotalRecords = computed(() => {
   }
   return totalRecords.value;
 });
-
 
 onMounted(async () => {
   await fetchCities();
@@ -203,6 +203,21 @@ const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate
         @apply="applyFilters"
     />
 
+    <div class="flex items-center justify-between mt-4 mb-2">
+      <span class="text-sm text-gray-500 font-medium">
+          Showing {{ firstRecord }}–{{ lastRecord }} from {{ tableTotalRecords }} records
+      </span>
+
+      <Button
+        label="Export CSV"
+        icon="pi pi-download"
+        severity="secondary"
+        :loading="exporting"
+        :disabled="loading || tableTotalRecords === 0"
+        @click="exportToCSV"
+      />
+    </div>
+
     <RouteTable
       :routesData="tableRoutesData"
       :cities="cities"
@@ -218,23 +233,19 @@ const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate
       :selectedSites="selectedSites"
     />
 
-<div class="flex items-center justify-between mt-2">
-  <span class="text-sm text-gray-500">
-    Показано {{ firstRecord }}–{{ lastRecord }} из {{ tableTotalRecords }} записей
-  </span>
-
-  <Paginator
-    :rows="size"
-    :first="(page - 1) * size"
-    :totalRecords="tableTotalRecords"
-    :rowsPerPageOptions="rowsPerPageOptions.map(o => o.value)"
-    @page="($event) => {
-      page = $event.page + 1;
-      size = $event.rows;
-      fetchRoutes();
-    }"
-  />
-</div>
+    <div class="flex justify-end mt-2">
+        <Paginator
+          :rows="size"
+          :first="(page - 1) * size"
+          :totalRecords="tableTotalRecords"
+          :rowsPerPageOptions="rowsPerPageOptions.map(o => o.value)"
+          @page="($event) => {
+            page = $event.page + 1;
+            size = $event.rows;
+            fetchRoutes();
+          }"
+        />
+    </div>
 
     <RouteTripsDialog
         :visible="showTripsDialog"
@@ -249,5 +260,6 @@ const selectedDialogDate = computed(() => selectedWeekDate.value || selectedDate
         :CitiesName="selectedCitiesName"
         :selectedDate="selectedDialogDate"
     />
+
   <ScrollToTop />
 </template>

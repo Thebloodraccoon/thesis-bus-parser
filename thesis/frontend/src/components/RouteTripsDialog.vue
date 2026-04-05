@@ -101,6 +101,42 @@ const chartOptions = computed(() => ({
   }
 }));
 
+const exporting = ref(false);
+
+const exportToCSV = async () => {
+  if (!props.routeId) return;
+  exporting.value = true;
+  try {
+    const p = new URLSearchParams({ route_id: props.routeId });
+    if (props.departureTimeFrom) p.set('departure_time_from', props.departureTimeFrom);
+    if (props.departureTimeTo)   p.set('departure_time_to',   props.departureTimeTo);
+    if (props.arrivalTimeFrom)   p.set('arrival_time_from',   props.arrivalTimeFrom);
+    if (props.arrivalTimeTo)     p.set('arrival_time_to',     props.arrivalTimeTo);
+    if (props.isTransfer != null) p.set('is_transfer', props.isTransfer);
+
+    const response = await apiClient.get(`/routes/export-trips?${p.toString()}`, {
+      responseType: 'blob',
+    });
+
+    const disposition = response.headers['content-disposition'] || '';
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : `trips_route_${props.routeId}.csv`;
+
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch {
+    toast.add({ severity: 'error', summary: 'Export failed', detail: 'Could not download CSV', life: 3000 });
+  } finally {
+    exporting.value = false;
+  }
+};
+
 const fetchTrips = async () => {
   if (!props.routeId) return;
   loading.value = true;
@@ -148,17 +184,30 @@ const fmt = (dateStr, timeStr) => {
     :style="{ width: '70vw', maxHeight: '100vh' }"
   >
     <template #header>
-      <div class="flex flex-col gap-1 leading-tight">
-        <span class="font-bold text-base">📍 {{ props.CitiesName }}</span>
-        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-surface-400">
-          <span>📅 {{ formatDate(props.selectedDate, { showTime: false, showSeconds: false }) }}</span>
-          <span>🏢 {{ props.aggregatorName }}</span>
-          <span v-if="props.departureTimeFrom">🕐 {{ props.departureTimeFrom }} — {{ props.departureTimeTo }}</span>
-          <span v-if="props.arrivalTimeFrom">🕑 arrival: {{ props.arrivalTimeFrom }} — {{ props.arrivalTimeTo }}</span>
-          <span v-if="props.isTransfer !== null && props.isTransfer !== undefined">
-            {{ props.isTransfer ? '🔀 transfer' : '➡️ direct' }}
-          </span>
+      <div class="flex items-start justify-between w-full gap-4">
+        <div class="flex flex-col gap-1 leading-tight">
+          <span class="font-bold text-base">{{ props.CitiesName }}</span>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-surface-400">
+            <span>{{ formatDate(props.selectedDate, { showTime: false, showSeconds: false }) }}</span>
+            <span>{{ props.aggregatorName }}</span>
+            <span v-if="props.departureTimeFrom">🕐 {{ props.departureTimeFrom }} — {{ props.departureTimeTo }}</span>
+            <span v-if="props.arrivalTimeFrom">🕑 arrival: {{ props.arrivalTimeFrom }} — {{ props.arrivalTimeTo }}</span>
+            <span v-if="props.isTransfer !== null && props.isTransfer !== undefined">
+              {{ props.isTransfer ? 'transfer' : 'direct' }}
+            </span>
+          </div>
         </div>
+
+        <Button
+          icon="pi pi-download"
+          label="CSV"
+          severity="secondary"
+          size="small"
+          :loading="exporting"
+          :disabled="loading || trips.length === 0"
+          @click="exportToCSV"
+          class="shrink-0"
+        />
       </div>
     </template>
 

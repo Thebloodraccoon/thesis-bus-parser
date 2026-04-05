@@ -18,6 +18,7 @@ from thesis.parser.app.repository import (
     CurrencyRepository,
     db_session,
 )
+from thesis.parser.app.scrapers.base import get_async_client
 from thesis.parser.app.settings.config import settings
 from thesis.parser.app.settings.logger import get_logger
 
@@ -69,29 +70,30 @@ class CityMatcher(ABC):
         """Resolve and persist city IDs for *all* cities in the DB."""
 
     def _fuzzy_match(
-        self,
-        target: str,
-        candidates: List[Dict[str, Any]],
-        name_key: str = "name",
-        id_key: str = "id",
+            self,
+            target: str,
+            candidates: List[Dict[str, Any]],
+            name_key: str = "name",
+            id_key: str = "id",
     ) -> Optional[Any]:
         target_norm = target.lower()
-        best_id, best_ratio = None, 0.0
+        best_id, best_ratio, best_name = None, 0.0, None
+
         for item in candidates:
             api_name = str(item.get(name_key, "")).lower()
+
             if api_name == target_norm:
                 return item.get(id_key)
 
             ratio = difflib.SequenceMatcher(None, target_norm, api_name).ratio()
             if ratio > best_ratio:
-                best_ratio, best_id = ratio, item.get(id_key)
+                best_ratio = ratio
+                best_id = item.get(id_key)
+                best_name = item.get(name_key)
 
         if best_ratio >= self.FUZZY_THRESHOLD and best_id is not None:
-            logger.debug(
-                "[%s] Fuzzy match score=%.2f  target='%s'",
-                self.site_name,
-                best_ratio,
-                target,
+            logger.info(
+                f"[{self.site_name}] Fuzzy match score={best_ratio:.2f} | target='{target}' -> matched API name='{best_name}'"
             )
             return best_id
 
@@ -122,7 +124,7 @@ class BulkCityMatcher(CityMatcher, ABC):
     async def run(self) -> None:
         api_data = await self._fetch_all()
         if not api_data:
-            logger.error("[%s] No data received from API.", self.site_name)
+            logger.error(f"{self.site_name} No data received from API")
             return
 
         cnt = 0
@@ -146,7 +148,7 @@ class BulkCityMatcher(CityMatcher, ABC):
                     cnt += 1
             s.commit()
 
-        logger.info("[%s] Updated %d cities.", self.site_name, cnt)
+        logger.info(f"[{self.site_name}] Updated {cnt} cities")
 
 
 class InbusCityMatcher(BulkCityMatcher):
@@ -162,7 +164,7 @@ class InbusCityMatcher(BulkCityMatcher):
         super().__init__("Inbus", "inbus_id", self._MANUAL)
 
     async def _fetch_all(self) -> List[Dict[str, Any]]:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with get_async_client() as client:
             home = await client.get("https://inbus.ua/")
             cookies = dict(home.cookies)
             token = None
@@ -196,7 +198,7 @@ class VoyagerCityMatcher(BulkCityMatcher):
         super().__init__("Voyager", "voyager_id", self._MANUAL)
 
     async def _fetch_all(self) -> List[Dict[str, Any]]:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with get_async_client() as client:
             resp = await client.get(self._API_URL)
         return [
             {"name": item["city"], "id": int(item["nr"])}
@@ -238,7 +240,7 @@ class ApiCityMatcher(CityMatcher, ABC):
             for variant in _variants(city.name_ua, city.name_en):
                 try:
                     kwargs = self._build_params(variant)
-                    async with httpx.AsyncClient(follow_redirects=True) as client:
+                    async with get_async_client() as client:
                         resp = await client.get(self._api_url, **kwargs)
 
                     candidates = self._parse_response(resp.json())
@@ -248,7 +250,7 @@ class ApiCityMatcher(CityMatcher, ABC):
 
                 except Exception as exc:
                     logger.error(
-                        "[%s] Error for '%s': %s", self.site_name, variant, exc
+                        f"[{self.site_name}] Error for '{variant}': {exc}"
                     )
 
         return city, None
@@ -271,7 +273,7 @@ class ApiCityMatcher(CityMatcher, ABC):
                     cnt += 1
             s.commit()
 
-        logger.info("[%s] Updated %d cities.", self.site_name, cnt)
+        logger.info(f"[{self.site_name}] Updated {cnt} cities.")
 
 
 class UkrpasCityMatcher(ApiCityMatcher):
@@ -347,14 +349,25 @@ class CurrencyService:
     _BYN_URL = "https://minfin.com.ua/api/coin/graph/byn/uah"
 
     async def refresh(self) -> List[Dict[str, Any]]:
+        logger.info("Starting currency exchange rates refresh from APIs...")
+
         async with httpx.AsyncClient(follow_redirects=True) as client:
-            nbu_resp = await client.get(self._NBU_URL, params={"json": ""})
-            nbu_data = nbu_resp.json()
+            nbu_data = []
+            try:
+                logger.debug(f"Fetching NBU rates from {self._NBU_URL}")
+                nbu_resp = await client.get(self._NBU_URL, params={"json": ""})
+                nbu_resp.raise_for_status()
+                nbu_data = nbu_resp.json()
+                logger.info(f"Successfully fetched {len(nbu_data)} rates from NBU.")
+            except Exception as exc:
+                logger.error(f"Failed to fetch NBU rates: {exc}")
 
             byn_rate: Optional[float] = None
             try:
                 today = date.today().isoformat()
+                logger.debug(f"Fetching BYN rate from {self._BYN_URL}")
                 byn_resp = await client.get(f"{self._BYN_URL}/{today}/{today}/days/")
+                byn_resp.raise_for_status()
                 byn_data = byn_resp.json()
 
                 raw = (
@@ -365,10 +378,20 @@ class CurrencyService:
                 )
                 byn_rate = float(raw) if raw and raw != "-" else None
 
+                if byn_rate:
+                    logger.info(f"Successfully fetched BYN rate: {byn_rate}")
+                else:
+                    logger.warning("BYN rate fetch returned empty or invalid value.")
+
             except Exception as exc:
-                logger.warning("BYN rate fetch failed: %s", exc)
+                logger.warning(f"BYN rate fetch failed: {exc}")
 
         updated: List[Dict[str, Any]] = []
+        if not nbu_data and not byn_rate:
+            logger.warning("No currency data was fetched. Skipping database update.")
+            return updated
+
+        logger.debug("Starting to persist currency records to DB...")
         with db_session() as s:
             repo = CurrencyRepository(s)
             for item in nbu_data:
@@ -383,16 +406,18 @@ class CurrencyService:
                 if result:
                     updated.append(result)
 
+        logger.info(f"Currency refresh completed. Updated {len(updated)} currency records in DB.")
         return updated
 
     @staticmethod
     def _persist(
-        repo: CurrencyRepository,
-        code: Optional[str],
-        rate: Any,
-        date_str: Optional[str],
+            repo: CurrencyRepository,
+            code: Optional[str],
+            rate: Any,
+            date_str: Optional[str],
     ) -> Optional[Dict[str, Any]]:
         if not code or not rate:
+            logger.debug(f"Skipping persistence: missing code or rate (code: {code}, rate: {rate}).")
             return None
         try:
             ex_date = date.today()
@@ -403,9 +428,10 @@ class CurrencyService:
             obj = repo.update_or_create(
                 CurrencySchema(code=code, rate=float(rate), exchange_date=ex_date)
             )
+            logger.debug(f"Persisted: {code} -> {rate} (date: {ex_date})")
             return {"code": obj.code, "rate": obj.rate, "date": str(obj.exchange_date)}
         except Exception as exc:
-            logger.error("Currency persist error (%s): %s", code, exc)
+            logger.error(f"Currency persist error ({code}): {exc}")
             return None
 
 
@@ -445,7 +471,7 @@ class RouteFetcher:
                     )
 
                 except Exception as exc:
-                    logger.error("City upsert error: %s", exc)
+                    logger.error(f"City upsert error: {exc}")
             s.commit()
         return data
 
@@ -491,7 +517,7 @@ class RouteFetcher:
                         )
                     )
                 except Exception as exc:
-                    logger.error("Route data build error: %s", exc)
+                    logger.error(f"Route data build error: {exc}")
 
         random.shuffle(result)
         return result

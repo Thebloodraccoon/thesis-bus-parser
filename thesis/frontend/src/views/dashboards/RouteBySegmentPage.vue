@@ -14,6 +14,8 @@ import FiltersSingleCity from '@/components/RoutesBySegment/FiltersSingleCity.vu
 import RoutesTableByDates from '@/components/RoutesBySegment/RoutesTableByDates.vue';
 import RouteTripsDialog from '@/components/RouteTripsDialog.vue';
 import { useUserStore } from '@/stores/useUserStore';
+import apiClient from '@/api/axios';
+import FilterPresets from "@/components/Filters/FilterPresets.vue";
 
 const userStore = useUserStore();
 const { isAnalyticOrAdmin, fetchCurrentUser } = userStore;
@@ -144,6 +146,53 @@ function applyFilters() {
   }
   loadRoutes();
 }
+
+const exporting = ref(false);
+
+async function exportToCSV() {
+  if (!selectedFromCity.value || !selectedToCity.value || !selectedDates.value?.length) return;
+
+  exporting.value = true;
+  try {
+    const params = new URLSearchParams();
+    params.set('from_city_id', selectedFromCity.value);
+    params.set('to_city_id',   selectedToCity.value);
+    selectedDates.value.forEach(d => params.append('departure_dates', d));
+
+    if (departureTimeFrom.value && departureTimeFrom.value !== '00:00')
+      params.set('departure_time_from', departureTimeFrom.value);
+    if (departureTimeTo.value && departureTimeTo.value !== '23:59')
+      params.set('departure_time_to', departureTimeTo.value);
+    if (arrivalTimeFrom.value && arrivalTimeFrom.value !== '00:00')
+      params.set('arrival_time_from', arrivalTimeFrom.value);
+    if (arrivalTimeTo.value && arrivalTimeTo.value !== '23:59')
+      params.set('arrival_time_to', arrivalTimeTo.value);
+    if (isTransfer.value !== null && isTransfer.value !== undefined)
+      params.set('is_transfer', isTransfer.value);
+    (selectedSites.value || []).forEach(id => params.append('sites', id));
+
+    const response = await apiClient.get(`/routes/export-segment?${params.toString()}`, {
+      responseType: 'blob',
+    });
+
+    const disposition = response.headers['content-disposition'] || '';
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : `segment_${selectedFromCity.value}_${selectedToCity.value}.csv`;
+
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Segment export failed:', err);
+  } finally {
+    exporting.value = false;
+  }
+}
 </script>
 
 <template>
@@ -192,7 +241,7 @@ function applyFilters() {
       </div>
     </div>
 
-    <div class="w-full flex gap-4 mb-5 justify-between items-start">
+    <div class="w-full flex gap-4 mb-5 items-start">
       <FiltersAggregators
         :loading="loading"
         :allAggregators="allAggregators"
@@ -227,6 +276,14 @@ function applyFilters() {
     <div class="flex gap-2 mb-5">
       <Button label="Reset" severity="secondary" @click="resetFilters" :disabled="loading" />
       <Button label="Confirm" severity="primary" @click="applyFilters" :disabled="loading" />
+      <Button
+        label="Export CSV"
+        icon="pi pi-download"
+        severity="secondary"
+        :loading="exporting"
+        :disabled="loading || !selectedFromCity || !selectedToCity || !selectedDates?.length || !formattedTable?.length"
+        @click="exportToCSV"
+      />
     </div>
   </div>
 

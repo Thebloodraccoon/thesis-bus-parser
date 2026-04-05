@@ -19,7 +19,7 @@ const agentIds = computed(() => Object.keys(props.aggregators || {}));
 
     <!-- Загрузка -->
     <div v-if="loading" class="card border border-surface rounded p-6 w-full">
-      <div class="font-semibold text-xl mb-4">Завантаження даних...</div>
+      <div class="font-semibold text-xl mb-4">Uploading data...</div>
       <div v-for="n in size" :key="n" class="mb-4">
         <div class="flex space-x-4">
           <Skeleton width="10rem" class="mb-2" />
@@ -31,7 +31,7 @@ const agentIds = computed(() => Object.keys(props.aggregators || {}));
     <!-- Нет данных -->
     <div v-else-if="!routesData || routesData.length === 0" class="w-full text-center py-8 text-gray-500">
       <i class="pi pi-info-circle mr-2" />
-      Немає даних для відображення. Перевірте фільтри.
+There is no data to display. Check the filters.
     </div>
 
     <!-- Таблица -->

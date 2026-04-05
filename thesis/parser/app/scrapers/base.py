@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from logging import WARNING
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 
 import httpx
 from playwright.async_api import async_playwright
@@ -27,10 +27,30 @@ from thesis.parser.app.schemas import (
     TripSchema,
     RouteSchema,
 )
+from thesis.parser.app.settings.config import settings
 from thesis.parser.app.settings.logger import get_logger
 
 logger = get_logger(__name__)
 
+@asynccontextmanager
+async def get_async_client(
+    timeout: int = 30,
+    cookies: Optional[dict] = None,
+    **kwargs: Any
+) -> AsyncGenerator[httpx.AsyncClient, None]:
+    """Universal context manager for httpx. AsyncClient with proxy support."""
+
+    client_kwargs = {
+        "timeout": timeout,
+        "cookies": cookies,
+        "follow_redirects": True,
+        **kwargs
+    }
+    if settings.PROXY_URL:
+        client_kwargs["proxy"] = settings.PROXY_URL
+
+    async with httpx.AsyncClient(**client_kwargs) as client:
+        yield client
 
 @retry(
     stop=stop_after_attempt(10),
@@ -55,9 +75,7 @@ async def _http_get(
     cookies: Optional[dict] = None,
     timeout: int = 30,
 ) -> httpx.Response:
-    async with httpx.AsyncClient(
-        timeout=timeout, cookies=cookies, follow_redirects=True
-    ) as client:
+    async with get_async_client(timeout=timeout, cookies=cookies) as client:
         resp = await client.get(url, params=params, headers=headers)
         resp.raise_for_status()
 
@@ -86,7 +104,7 @@ async def _http_post(
     headers: Optional[dict] = None,
     timeout: int = 30,
 ) -> httpx.Response:
-    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+    async with get_async_client(timeout=timeout) as client:
         resp = await client.post(
             url, params=params, json=json, data=data, headers=headers
         )
@@ -224,10 +242,15 @@ class BrowserScraper(BaseScraper, ABC):
     async def setup_browser(self, *, headless: bool = True):
         playwright = await async_playwright().start()
         try:
-            browser = await playwright.chromium.launch(
-                headless=headless,
-                args=["--disable-dev-shm-usage", "--no-sandbox"],
-            )
+            launch_kwargs = {
+                "headless": headless,
+                "args": ["--disable-dev-shm-usage", "--no-sandbox"],
+            }
+
+            if settings.PROXY_URL:
+                launch_kwargs["proxy"] = {"server": settings.PROXY_URL}
+
+            browser = await playwright.chromium.launch(**launch_kwargs)
             context = await browser.new_context(ignore_https_errors=True)
             await context.add_init_script(
                 "Object.defineProperty(navigator,'webdriver',{get:()=>undefined});"

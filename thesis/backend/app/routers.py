@@ -1,8 +1,11 @@
+import csv
+import io
 from datetime import date, timezone
 from typing import List, Optional, Union
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from sqlalchemy.orm import Session
+from starlette.responses import StreamingResponse
 
 from thesis.backend.app.auth import (
     AuthService,
@@ -328,6 +331,23 @@ def _common_time_params(
     }
 
 
+def _trips_time_params(
+    departure_time_from=Query(None),
+    departure_time_to=Query(None),
+    arrival_time_from=Query(None),
+    arrival_time_to=Query(None),
+    is_transfer: Optional[bool] = Query(None),
+):
+    """Same as _common_time_params but without 'sites' — get_trips_by_route doesn't accept it."""
+    return {
+        "departure_time_from": departure_time_from,
+        "departure_time_to": departure_time_to,
+        "arrival_time_from": arrival_time_from,
+        "arrival_time_to": arrival_time_to,
+        "is_transfer": is_transfer,
+    }
+
+
 @route_router.get("/routes-by-date")
 def get_routes_by_date(
     departure_date: date = Query(...),
@@ -369,8 +389,147 @@ def get_route_by_cities(
 @route_router.get("/trips/", response_model=TripSchemaResponse)
 def get_trips_by_route(
     route_id: int = Query(ge=1),
-    params: dict = Depends(_common_time_params),
+    params: dict = Depends(_trips_time_params),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
     return RouteService(db).get_trips_by_route(route_id=route_id, **params)
+
+
+@route_router.get("/export-trips")
+def export_trips(
+        route_id: int = Query(..., ge=1),
+        params: dict = Depends(_trips_time_params),
+        db: Session = Depends(get_db),
+        _: User = Depends(get_current_user),
+):
+    """
+    Export all trips (segments) for a given route to CSV.
+    Applies the same filters as /trips/.
+    """
+    rows = RouteService(db).export_trips_to_csv(route_id=route_id, **params)
+
+    output = io.StringIO()
+    fieldnames = [
+        "departure_date",
+        "departure_time",
+        "arrival_date",
+        "arrival_time",
+        "duration",
+        "from_station",
+        "to_station",
+        "carrier_name",
+        "is_transfer",
+        "price",
+        "currency",
+        "available_seats",
+        "price_updated_at",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    output.seek(0)
+
+    filename = f"trips_route_{route_id}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@route_router.get("/export")
+def export_routes(
+        departure_date: date = Query(...),
+        from_city_ids: Optional[List[int]] = Query(None),
+        to_city_ids: Optional[List[int]] = Query(None),
+        params: dict = Depends(_common_time_params),
+        db: Session = Depends(get_db),
+        _: User = Depends(get_current_user),
+):
+    """
+    Export routes for a given date to CSV.
+    The same filters are applied as /routes-by-date.
+    """
+    rows = RouteService(db).export_routes_to_csv(
+        departure_date=departure_date,
+        from_city_ids=from_city_ids,
+        to_city_ids=to_city_ids,
+        **params,
+    )
+
+    output = io.StringIO()
+    fieldnames = [
+        "from_city",
+        "to_city",
+        "departure_date",
+        "aggregator",
+        "route_id",
+        "currency",
+        "min_price",
+        "median_price",
+        "max_price",
+        "segments_count",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    output.seek(0)
+
+    filename = f"routes_{departure_date}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@route_router.get("/export-segment")
+def export_segment(
+        from_city_id: int = Query(...),
+        to_city_id: int = Query(...),
+        departure_dates: List[date] = Query(...),
+        params: dict = Depends(_common_time_params),
+        db: Session = Depends(get_db),
+        _: User = Depends(get_current_user),
+):
+    """
+    Export a city-pair segment across multiple dates to CSV.
+    Columns: from_city, to_city, departure_date, aggregator,
+             route_id, currency, min_price, median_price, max_price, segments_count.
+    """
+    rows = RouteService(db).export_segment_to_csv(
+        from_city_id=from_city_id,
+        to_city_id=to_city_id,
+        departure_dates=departure_dates,
+        **params,
+    )
+
+    output = io.StringIO()
+    fieldnames = [
+        "from_city",
+        "to_city",
+        "departure_date",
+        "aggregator",
+        "route_id",
+        "currency",
+        "min_price",
+        "median_price",
+        "max_price",
+        "segments_count",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    output.seek(0)
+
+    from_str = str(from_city_id)
+    to_str = str(to_city_id)
+    dates_str = f"{min(departure_dates)}_{max(departure_dates)}" if departure_dates else "all"
+    filename = f"segment_{from_str}_{to_str}_{dates_str}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

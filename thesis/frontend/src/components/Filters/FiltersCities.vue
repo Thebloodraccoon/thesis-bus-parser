@@ -29,7 +29,7 @@ const resolvedCityOptions = computed(() => {
 <template>
   <div class="space-y-4">
     <div>
-      <label class="block text-sm font-medium mb-1">Город отправки</label>
+      <label class="block text-sm font-medium mb-1">City of departure</label>
       <MultiSelect
         :disabled="props.loading"
         :modelValue="props.fromCityIds"

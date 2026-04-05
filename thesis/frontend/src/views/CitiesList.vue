@@ -82,7 +82,7 @@ watch(globalFilter, () => {
         <Card v-else>
             <template #title>
                 <div class="flex justify-between items-center">
-                    List of cities and stations
+                    List of cities
                     <InputText v-model="globalFilter" placeholder="Search by name, or ID" class="w-full sm:w-80" />
                 </div>
             </template>

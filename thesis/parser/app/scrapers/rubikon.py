@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import math
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, List
@@ -16,11 +18,11 @@ class RubikonScraper(RequestScraper):
         return cls(await cls._load_site("rubikon"))
 
     async def fetch(
-        self,
-        date: datetime,
-        departure_city: CitySchema,
-        arrival_city: CitySchema,
-        **_: Any,
+            self,
+            date: datetime,
+            departure_city: CitySchema,
+            arrival_city: CitySchema,
+            **_: Any,
     ) -> List[dict]:
         url = f"{self.site.url}/departures"
         params = {
@@ -32,18 +34,51 @@ class RubikonScraper(RequestScraper):
         }
         headers = {"authorization": "", "cache-control": "no-cache", "lang": "uk"}
 
-        page, all_tickets = 1, []
-        while True:
-            resp = await self._get(
-                url, params={**params, "page": page}, headers=headers, timeout=120
-            )
-            data = resp.json().get("data", {})
-            tickets = data.get("departures", {}).get("data", [])
-            total = data.get("departuresCount", 0)
-            all_tickets.extend(tickets)
-            if len(all_tickets) >= total or not tickets:
-                break
-            page += 1
+        async def _fetch_page(page: int, max_retries: int = 3) -> dict:
+            for attempt in range(max_retries):
+                resp = await self._get(
+                    url, params={**params, "page": page}, headers=headers, timeout=120
+                )
+
+                if "application/json" in resp.headers.get("Content-Type", ""):
+                    return resp.json()
+
+                logger.warning(
+                    f"[Rubikon] Non-JSON on page {page} (attempt {attempt + 1}/{max_retries}). "
+                    f"Route: {departure_city.name_ua} -> {arrival_city.name_ua}"
+                )
+                await asyncio.sleep(2)
+
+            raise ValueError(f"Failed to get JSON from page {page} after {max_retries} attempts.")
+
+        all_tickets = []
+
+        try:
+            first_page_json = await _fetch_page(page=1)
+
+            data = first_page_json.get("data", {})
+            departures = data.get("departures", {})
+
+            all_tickets.extend(departures.get("data", []))
+
+            last_page = departures.get("last_page")
+
+            if not last_page:
+                total = data.get("departuresCount", 0)
+                per_page = departures.get("per_page", 30)  # По умолчанию 30
+                last_page = math.ceil(total / per_page) if per_page else 1
+
+            if last_page > 1:
+                tasks = [_fetch_page(page=p) for p in range(2, last_page + 1)]
+                results = await asyncio.gather(*tasks)
+
+                for res in results:
+                    page_tickets = res.get("data", {}).get("departures", {}).get("data", [])
+                    all_tickets.extend(page_tickets)
+
+        except Exception as exc:
+            raise RuntimeError(f"Fetch failed for {departure_city.name_ua} -> {arrival_city.name_ua}: {exc}") from exc
+
         return all_tickets
 
     def parse(

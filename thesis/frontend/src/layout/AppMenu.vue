@@ -40,15 +40,15 @@ const model = ref([
     },
     {
         visible: isAdmin.value,
-        label: 'Agents Management',
+        label: 'Sites Management',
         items: [
             {
-                label: 'List of agents',
+                label: 'List of sites',
                 icon: 'pi pi-sitemap',
                 to: '/site/list'
             },
             {
-                label: 'Create an Agent',
+                label: 'Create a Site',
                 visible: isAdmin.value,
                 icon: 'pi pi-plus-circle',
                 to: '/site/create'

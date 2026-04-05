@@ -91,7 +91,7 @@ const toast = useToast();
 
 const savePreset = async () => {
   if (!newPresetName.value.trim()) {
-    toast.add({ severity: 'warn', summary: 'Внимание', detail: 'Введите название шаблона', life: 3000 });
+    toast.add({ severity: 'warn', summary: 'Attention', detail: 'Enter a name for the template', life: 3000 });
     return;
   }
 
@@ -161,7 +161,6 @@ const deletePresetConfirmed = async () => {
       </Dropdown>
     </div>
 
-    <!-- Кнопки -->
     <div class="flex gap-2" style="margin-top: 1.625rem;">
        <Button
        :disabled="props.loading"

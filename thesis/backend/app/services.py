@@ -649,18 +649,18 @@ class RouteService:
         self.db = db
 
     def get_all_routes(
-        self,
-        departure_date: date,
-        page: int = 1,
-        size: int = 20,
-        from_city_ids: Optional[List[int]] = None,
-        to_city_ids: Optional[List[int]] = None,
-        departure_time_from: Optional[time] = None,
-        departure_time_to: Optional[time] = None,
-        arrival_time_from: Optional[time] = None,
-        arrival_time_to: Optional[time] = None,
-        sites: Optional[List[int]] = None,
-        is_transfer: Optional[bool] = None,
+            self,
+            departure_date: date,
+            page: int = 1,
+            size: int = 20,
+            from_city_ids: Optional[List[int]] = None,
+            to_city_ids: Optional[List[int]] = None,
+            departure_time_from: Optional[time] = None,
+            departure_time_to: Optional[time] = None,
+            arrival_time_from: Optional[time] = None,
+            arrival_time_to: Optional[time] = None,
+            sites: Optional[List[int]] = None,
+            is_transfer: Optional[bool] = None,
     ) -> Dict[str, Any]:
         available_sites = self._normalize_sites(sites)
         existing_sites = self._get_existing_site_ids(available_sites)
@@ -695,16 +695,16 @@ class RouteService:
         return {"total": total, "page": page, "size": size, "items": items}
 
     def get_route_by_cities(
-        self,
-        departure_dates: List[date],
-        from_city_id: int,
-        to_city_id: int,
-        departure_time_from: Optional[time] = None,
-        departure_time_to: Optional[time] = None,
-        arrival_time_from: Optional[time] = None,
-        arrival_time_to: Optional[time] = None,
-        sites: Optional[List[int]] = None,
-        is_transfer: Optional[bool] = None,
+            self,
+            departure_dates: List[date],
+            from_city_id: int,
+            to_city_id: int,
+            departure_time_from: Optional[time] = None,
+            departure_time_to: Optional[time] = None,
+            arrival_time_from: Optional[time] = None,
+            arrival_time_to: Optional[time] = None,
+            sites: Optional[List[int]] = None,
+            is_transfer: Optional[bool] = None,
     ) -> Dict[str, Any]:
         available_sites = self._normalize_sites(sites)
         existing_sites_str: Set[str] = {
@@ -743,13 +743,13 @@ class RouteService:
         return result
 
     def get_trips_by_route(
-        self,
-        route_id: int,
-        departure_time_from: Optional[time] = None,
-        departure_time_to: Optional[time] = None,
-        arrival_time_from: Optional[time] = None,
-        arrival_time_to: Optional[time] = None,
-        is_transfer: Optional[bool] = None,
+            self,
+            route_id: int,
+            departure_time_from: Optional[time] = None,
+            departure_time_to: Optional[time] = None,
+            arrival_time_from: Optional[time] = None,
+            arrival_time_to: Optional[time] = None,
+            is_transfer: Optional[bool] = None,
     ) -> TripSchemaResponse:
         latest = self._build_history_subquery().alias("latest_history")
         trip_ids_subq = self._apply_time_filters(
@@ -797,7 +797,7 @@ class RouteService:
 
     @staticmethod
     def _make_route_entry(
-        from_city_id, to_city_id, dep_date, available, existing
+            from_city_id, to_city_id, dep_date, available, existing
     ) -> Dict[str, Any]:
         existing_str = [str(s) for s in existing]
         agents = {}
@@ -842,8 +842,8 @@ class RouteService:
             q = q.where(RouteModel.to_city_id.in_(to_ids))
 
         total = (
-            self.db.execute(select(func.count()).select_from(q.subquery())).scalar()
-            or 0
+                self.db.execute(select(func.count()).select_from(q.subquery())).scalar()
+                or 0
         )
         rows = self.db.execute(q.offset((page - 1) * size).limit(size)).all()
         return rows, total
@@ -882,16 +882,16 @@ class RouteService:
         return q
 
     def _get_routes_data(
-        self,
-        dep_date,
-        from_city_id,
-        to_city_id,
-        available_sites,
-        dep_time_from,
-        dep_time_to,
-        arr_time_from,
-        arr_time_to,
-        is_transfer,
+            self,
+            dep_date,
+            from_city_id,
+            to_city_id,
+            available_sites,
+            dep_time_from,
+            dep_time_to,
+            arr_time_from,
+            arr_time_to,
+            is_transfer,
     ) -> Dict[Any, RouteSchema]:
         latest = self._build_history_subquery().alias("latest_history")
         time_filters = (dep_time_from, dep_time_to, arr_time_from, arr_time_to)
@@ -980,3 +980,240 @@ class RouteService:
                 )
             )
         return TripSchemaResponse(total_segments_count=len(trips), trips=trips)
+
+    def export_routes_to_csv(
+            self,
+            departure_date: "date",
+            from_city_ids: Optional[List[int]] = None,
+            to_city_ids: Optional[List[int]] = None,
+            departure_time_from: Optional["time"] = None,
+            departure_time_to: Optional["time"] = None,
+            arrival_time_from: Optional["time"] = None,
+            arrival_time_to: Optional["time"] = None,
+            is_transfer: Optional[bool] = None,
+            sites: Optional[List[int]] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Returns a flat list of rows for CSV export of routes on a specified date.
+        Each row = one route × one aggregator.
+        """
+
+        from_city = aliased(CityModel, name="from_city")
+        to_city = aliased(CityModel, name="to_city")
+        latest = self._build_history_subquery().alias("latest_history")
+
+        time_filters = (departure_time_from, departure_time_to, arrival_time_from, arrival_time_to)
+        has_time = any(time_filters)
+
+        trip_ids_q = self._apply_time_filters(
+            select(TripModel.id).where(TripModel.route_id == RouteModel.id),
+            *time_filters,
+        ).subquery()
+
+        transfer_cond = (
+            (TripModel.is_transfer == is_transfer) if is_transfer is not None else True
+        )
+
+        site_filter = [str(s) for s in sites] if sites else None
+
+        q = (
+            select(
+                from_city.name_ua.label("from_city"),
+                to_city.name_ua.label("to_city"),
+                RouteModel.departure_date,
+                SiteModel.name.label("aggregator"),
+                RouteModel.id.label("route_id"),
+                func.max(latest.c.currency).label("currency"),
+                func.min(latest.c.price).label("min_price"),
+                func.percentile_cont(0.5)
+                .within_group(latest.c.price)
+                .label("median_price"),
+                func.max(latest.c.price).label("max_price"),
+                func.count(func.distinct(TripModel.id)).label("segments_count"),
+            )
+            .join(from_city, RouteModel.from_city_id == from_city.id)
+            .join(to_city, RouteModel.to_city_id == to_city.id)
+            .join(SiteModel, RouteModel.site_id == SiteModel.id)
+            .outerjoin(
+                TripModel,
+                and_(
+                    RouteModel.id == TripModel.route_id,
+                    (TripModel.id.in_(select(trip_ids_q)) if has_time else True),
+                    transfer_cond,
+                ),
+            )
+            .join(latest)
+            .where(RouteModel.departure_date == departure_date)
+            .group_by(
+                RouteModel.id,
+                from_city.name_ua,
+                to_city.name_ua,
+                SiteModel.name,
+            )
+            .order_by(from_city.name_ua, to_city.name_ua, SiteModel.name)
+        )
+
+        if from_city_ids:
+            q = q.where(RouteModel.from_city_id.in_(from_city_ids))
+        if to_city_ids:
+            q = q.where(RouteModel.to_city_id.in_(to_city_ids))
+        if site_filter:
+            q = q.where(RouteModel.site_id.in_(site_filter))
+
+        rows = self.db.execute(q).all()
+
+        return [
+            {
+                "from_city": row.from_city,
+                "to_city": row.to_city,
+                "departure_date": str(row.departure_date),
+                "aggregator": row.aggregator,
+                "route_id": row.route_id,
+                "currency": row.currency or "",
+                "min_price": round(row.min_price or 0, 2),
+                "median_price": round(float(row.median_price or 0), 2),
+                "max_price": round(row.max_price or 0, 2),
+                "segments_count": row.segments_count or 0,
+            }
+            for row in rows
+        ]
+
+    def export_trips_to_csv(
+            self,
+            route_id: int,
+            departure_time_from: Optional[time] = None,
+            departure_time_to: Optional[time] = None,
+            arrival_time_from: Optional[time] = None,
+            arrival_time_to: Optional[time] = None,
+            is_transfer: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Returns a flat list of rows for CSV export of trips for a given route.
+        Applies the same filters as get_trips_by_route.
+        """
+        response = self.get_trips_by_route(
+            route_id=route_id,
+            departure_time_from=departure_time_from,
+            departure_time_to=departure_time_to,
+            arrival_time_from=arrival_time_from,
+            arrival_time_to=arrival_time_to,
+            is_transfer=is_transfer,
+        )
+
+        rows = []
+        for trip in response.trips:
+            rows.append(
+                {
+                    "departure_date": str(trip.departure_date) if trip.departure_date else "",
+                    "departure_time": str(trip.departure_time)[:5] if trip.departure_time else "",
+                    "arrival_date": str(trip.arrival_date) if trip.arrival_date else "",
+                    "arrival_time": str(trip.arrival_time)[:5] if trip.arrival_time else "",
+                    "duration": str(trip.duration)[:5] if trip.duration else "",
+                    "from_station": trip.from_station or "",
+                    "to_station": trip.to_station or "",
+                    "carrier_name": trip.carrier_name,
+                    "is_transfer": trip.is_transfer,
+                    "price": trip.price,
+                    "currency": trip.currency,
+                    "available_seats": trip.available_seats if trip.available_seats is not None else "",
+                    "price_updated_at": trip.price_updated_at.strftime(
+                        "%Y-%m-%d %H:%M") if trip.price_updated_at else "",
+                }
+            )
+        return rows
+
+    def export_segment_to_csv(
+            self,
+            from_city_id: int,
+            to_city_id: int,
+            departure_dates: List[date],
+            departure_time_from: Optional[time] = None,
+            departure_time_to: Optional[time] = None,
+            arrival_time_from: Optional[time] = None,
+            arrival_time_to: Optional[time] = None,
+            sites: Optional[List[int]] = None,
+            is_transfer: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Flat CSV export for a city-pair segment across multiple departure dates.
+        Each row = one date × one aggregator with min/median/max price and segment count.
+        """
+        from_city_alias = aliased(CityModel, name="from_city")
+        to_city_alias = aliased(CityModel, name="to_city")
+        latest = self._build_history_subquery().alias("latest_history")
+
+        time_filters = (departure_time_from, departure_time_to, arrival_time_from, arrival_time_to)
+        has_time = any(time_filters)
+
+        trip_ids_q = self._apply_time_filters(
+            select(TripModel.id).where(TripModel.route_id == RouteModel.id),
+            *time_filters,
+        ).subquery()
+
+        transfer_cond = (
+            (TripModel.is_transfer == is_transfer) if is_transfer is not None else True
+        )
+
+        available_sites = self._normalize_sites(sites)
+        existing_site_ids = [str(s) for s in self._get_existing_site_ids(available_sites)]
+
+        q = (
+            select(
+                from_city_alias.name_ua.label("from_city"),
+                to_city_alias.name_ua.label("to_city"),
+                RouteModel.departure_date,
+                SiteModel.name.label("aggregator"),
+                RouteModel.id.label("route_id"),
+                func.max(latest.c.currency).label("currency"),
+                func.min(latest.c.price).label("min_price"),
+                func.percentile_cont(0.5)
+                .within_group(latest.c.price)
+                .label("median_price"),
+                func.max(latest.c.price).label("max_price"),
+                func.count(func.distinct(TripModel.id)).label("segments_count"),
+            )
+            .join(from_city_alias, RouteModel.from_city_id == from_city_alias.id)
+            .join(to_city_alias, RouteModel.to_city_id == to_city_alias.id)
+            .join(SiteModel, RouteModel.site_id == SiteModel.id)
+            .outerjoin(
+                TripModel,
+                and_(
+                    RouteModel.id == TripModel.route_id,
+                    (TripModel.id.in_(select(trip_ids_q)) if has_time else True),
+                    transfer_cond,
+                ),
+            )
+            .join(latest)
+            .where(RouteModel.from_city_id == from_city_id)
+            .where(RouteModel.to_city_id == to_city_id)
+            .where(RouteModel.departure_date.in_(departure_dates))
+            .group_by(
+                RouteModel.id,
+                from_city_alias.name_ua,
+                to_city_alias.name_ua,
+                SiteModel.name,
+                RouteModel.departure_date,
+            )
+            .order_by(RouteModel.departure_date, SiteModel.name)
+        )
+
+        if available_sites:
+            q = q.where(RouteModel.site_id.in_(existing_site_ids))
+
+        rows = self.db.execute(q).all()
+
+        return [
+            {
+                "from_city": row.from_city,
+                "to_city": row.to_city,
+                "departure_date": str(row.departure_date),
+                "aggregator": row.aggregator,
+                "route_id": row.route_id,
+                "currency": row.currency or "",
+                "min_price": round(row.min_price or 0, 2),
+                "median_price": round(float(row.median_price or 0), 2),
+                "max_price": round(row.max_price or 0, 2),
+                "segments_count": row.segments_count or 0,
+            }
+            for row in rows
+        ]
