@@ -63,6 +63,7 @@ def login(request: Login, response: Response, db: Session = Depends(get_db)):
         request.password, user.hashed_password
     ):
         raise InvalidCredentialsException()
+
     return AuthService.perform_login(user, db, response)
 
 
@@ -398,10 +399,10 @@ def get_trips_by_route(
 
 @route_router.get("/export-trips")
 def export_trips(
-        route_id: int = Query(..., ge=1),
-        params: dict = Depends(_trips_time_params),
-        db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+    route_id: int = Query(..., ge=1),
+    params: dict = Depends(_trips_time_params),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
 ):
     """
     Export all trips (segments) for a given route to CSV.
@@ -440,12 +441,12 @@ def export_trips(
 
 @route_router.get("/export")
 def export_routes(
-        departure_date: date = Query(...),
-        from_city_ids: Optional[List[int]] = Query(None),
-        to_city_ids: Optional[List[int]] = Query(None),
-        params: dict = Depends(_common_time_params),
-        db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+    departure_date: date = Query(...),
+    from_city_ids: Optional[List[int]] = Query(None),
+    to_city_ids: Optional[List[int]] = Query(None),
+    params: dict = Depends(_common_time_params),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
 ):
     """
     Export routes for a given date to CSV.
@@ -486,12 +487,12 @@ def export_routes(
 
 @route_router.get("/export-segment")
 def export_segment(
-        from_city_id: int = Query(...),
-        to_city_id: int = Query(...),
-        departure_dates: List[date] = Query(...),
-        params: dict = Depends(_common_time_params),
-        db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+    from_city_id: int = Query(...),
+    to_city_id: int = Query(...),
+    departure_dates: List[date] = Query(...),
+    params: dict = Depends(_common_time_params),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
 ):
     """
     Export a city-pair segment across multiple dates to CSV.
@@ -525,7 +526,9 @@ def export_segment(
 
     from_str = str(from_city_id)
     to_str = str(to_city_id)
-    dates_str = f"{min(departure_dates)}_{max(departure_dates)}" if departure_dates else "all"
+    dates_str = (
+        f"{min(departure_dates)}_{max(departure_dates)}" if departure_dates else "all"
+    )
     filename = f"segment_{from_str}_{to_str}_{dates_str}.csv"
 
     return StreamingResponse(

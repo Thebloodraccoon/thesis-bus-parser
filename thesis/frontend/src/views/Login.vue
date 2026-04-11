@@ -194,7 +194,7 @@ onUnmounted(() => {
       <p class="mb-4 text-base font-medium">Enter the code from the Google Authenticator app</p>
 
       <p class="text-sm text-gray-400 mb-4">
-        Время на ввод: <span class="font-semibold text-black dark:text-white">{{ Math.floor(countdown / 60) }}:{{ String(countdown % 60).padStart(2, '0') }}</span>
+        Time to enter: <span class="font-semibold text-black dark:text-white">{{ Math.floor(countdown / 60) }}:{{ String(countdown % 60).padStart(2, '0') }}</span>
       </p>
 
       <div v-if="otpUri" class="qr-container mb-4">
@@ -203,9 +203,6 @@ onUnmounted(() => {
             alt="QR Code"
             class="rounded-lg shadow-md border border-gray-300 dark:border-gray-600 m-auto"
         />
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 break-words max-w-xs select-all">
-          {{ otpUri }}
-        </p>
       </div>
 
       <InputText
@@ -213,7 +210,7 @@ onUnmounted(() => {
           placeholder="Enter the code from the app"
           class="mb-2 w-full max-w-xs"
       />
-      <Button label="Подтвердить" @click="handleVerifyOtp"/>
+      <Button label="Confirm" @click="handleVerifyOtp"/>
     </div>
   </Dialog>
 

@@ -49,11 +49,11 @@ class InbusScraper(RequestScraper):
         return None
 
     async def fetch(
-            self,
-            date: datetime,
-            departure_city: CitySchema,
-            arrival_city: CitySchema,
-            **_: Any,
+        self,
+        date: datetime,
+        departure_city: CitySchema,
+        arrival_city: CitySchema,
+        **_: Any,
     ) -> Optional[List[dict]]:
         site_resp = await self._get("https://inbus.ua/")
         soup = BeautifulSoup(site_resp.text, "html.parser")
@@ -99,10 +99,10 @@ class InbusScraper(RequestScraper):
         return variants if isinstance(variants, list) else None
 
     def parse(
-            self,
-            content: Any,
-            departure_city: CitySchema,
-            arrival_city: CitySchema,
+        self,
+        content: Any,
+        departure_city: CitySchema,
+        arrival_city: CitySchema,
     ) -> List[TicketData]:
         tickets: List[TicketData] = []
 

@@ -151,12 +151,14 @@ class AuthService:
         otp_code: str, temp_token: str, db: Session, response: Response
     ) -> TokenResponse:
         user_id = AuthService.decode_temp_token(temp_token)
-        user = db.get(User, user_id)
+        user: User = db.get(User, user_id)
         if not user or not AuthService.verify_otp(user.otp_secret, otp_code):
             raise InvalidCodeException()
+
         if not user.is_2fa_enabled:
             user.is_2fa_enabled = True
             db.commit()
+
         AuthService._update_last_login(user, db)
         access = AuthService.create_access_token({"sub": user.email})
         AuthService.set_refresh_cookie(
@@ -193,7 +195,7 @@ async def _validate_token(
 async def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     db: Session = Depends(get_db),
-) -> User:
+) -> type[User]:
     """FastAPI dependency: returns the currently authenticated user."""
 
     email = await _validate_token(token, _ACCESS_TYPE)

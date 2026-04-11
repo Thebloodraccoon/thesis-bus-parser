@@ -109,9 +109,9 @@ class ScraperPipeline:
         )
 
     async def run(
-            self,
-            depth_from: int,
-            depth_to: int,
+        self,
+        depth_from: int,
+        depth_to: int,
     ) -> List[PipelineResult]:
         self._start = datetime.now()
         logger.info(
@@ -144,13 +144,17 @@ class ScraperPipeline:
             logger.info("All workers shut down successfully.")
 
         except Exception as exc:
-            logger.critical(f"Pipeline '{self._scraper.site.name}' failed with exception: {exc}")
+            logger.critical(
+                f"Pipeline '{self._scraper.site.name}' failed with exception: {exc}"
+            )
         finally:
             with db_session() as s:
                 SiteRepository(s).mark_parsed(self._scraper.site.name)
 
             elapsed = datetime.now() - self._start
-            logger.info(f"Pipeline '{self._scraper.site.name}' finished completely in {elapsed}")
+            logger.info(
+                f"Pipeline '{self._scraper.site.name}' finished completely in {elapsed}"
+            )
 
         return summary
 
@@ -162,7 +166,9 @@ class ScraperPipeline:
 
         routes = await asyncio.to_thread(RouteFetcher.get_routes, date)
         if not routes:
-            logger.warning(f"No routes received from RouteFetcher for {date_str}, skipping.")
+            logger.warning(
+                f"No routes received from RouteFetcher for {date_str}, skipping."
+            )
             return PipelineResult(date_str, 0, 0, 0)
 
         random.shuffle(routes)
@@ -177,7 +183,9 @@ class ScraperPipeline:
 
             await self._tasks_q.put({"route": route, "date": date})
 
-        logger.info(f"Finished queueing {total} routes for {date_str}. Waiting for workers to finish...")
+        logger.info(
+            f"Finished queueing {total} routes for {date_str}. Waiting for workers to finish..."
+        )
         await self._tasks_q.join()
 
         await self._results_q.put(None)
@@ -206,12 +214,16 @@ class ScraperPipeline:
             try:
                 success = await self._run_single(task["route"], task["date"])
             except Exception as exc:
-                logger.error(f"Worker {worker_id} encountered fatal error during _run_single: {exc}")
+                logger.error(
+                    f"Worker {worker_id} encountered fatal error during _run_single: {exc}"
+                )
                 success = False
             finally:
                 self._tasks_q.task_done()
 
-            await self._results_q.put({"success": success, "route": task["route"], "date": task["date"]})
+            await self._results_q.put(
+                {"success": success, "route": task["route"], "date": task["date"]}
+            )
 
     async def _collector(self, total: int) -> None:
         logger.info("Metrics collector started.")
@@ -246,10 +258,14 @@ class ScraperPipeline:
             )
 
             if tickets:
-                logger.info(f"Parsed {len(tickets)} tickets for {dep_name} → {arr_name}. Persisting to DB...")
+                logger.info(
+                    f"Parsed {len(tickets)} tickets for {dep_name} → {arr_name}. Persisting to DB..."
+                )
                 await asyncio.to_thread(self._persist, tickets)
             else:
-                logger.info(f"Scraper returned content for {dep_name} → {arr_name}, but parsed 0 valid tickets.")
+                logger.info(
+                    f"Scraper returned content for {dep_name} → {arr_name}, but parsed 0 valid tickets."
+                )
 
             return True
 
@@ -272,7 +288,9 @@ class ScraperPipeline:
 
             logger.info(f"Successfully persisted {len(tickets)} tickets to DB.")
         except Exception as exc:
-            logger.error(f"Database persistence failed for {len(tickets)} tickets: {exc}")
+            logger.error(
+                f"Database persistence failed for {len(tickets)} tickets: {exc}"
+            )
             raise
 
     def _timeout_exceeded(self) -> bool:
@@ -283,5 +301,5 @@ class ScraperPipeline:
                 f"Max allowed: {self._config.max_duration_seconds}s"
             )
             return True
-        
+
         return False

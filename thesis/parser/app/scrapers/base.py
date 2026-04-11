@@ -32,11 +32,10 @@ from thesis.parser.app.settings.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @asynccontextmanager
 async def get_async_client(
-    timeout: int = 30,
-    cookies: Optional[dict] = None,
-    **kwargs: Any
+    timeout: int = 30, cookies: Optional[dict] = None, **kwargs: Any
 ) -> AsyncGenerator[httpx.AsyncClient, None]:
     """Universal context manager for httpx. AsyncClient with proxy support."""
 
@@ -44,13 +43,14 @@ async def get_async_client(
         "timeout": timeout,
         "cookies": cookies,
         "follow_redirects": True,
-        **kwargs
+        **kwargs,
     }
     if settings.PROXY_URL:
         client_kwargs["proxy"] = settings.PROXY_URL
 
     async with httpx.AsyncClient(**client_kwargs) as client:
         yield client
+
 
 @retry(
     stop=stop_after_attempt(10),

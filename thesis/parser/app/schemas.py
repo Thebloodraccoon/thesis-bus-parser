@@ -80,6 +80,7 @@ class TicketData(BaseModel):
     available_seats: Optional[int]
     is_transfer: bool = False
 
+
 class RouteData(BaseModel):
     """One scraping task: a city pair for a specific date."""
 

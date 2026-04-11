@@ -649,18 +649,18 @@ class RouteService:
         self.db = db
 
     def get_all_routes(
-            self,
-            departure_date: date,
-            page: int = 1,
-            size: int = 20,
-            from_city_ids: Optional[List[int]] = None,
-            to_city_ids: Optional[List[int]] = None,
-            departure_time_from: Optional[time] = None,
-            departure_time_to: Optional[time] = None,
-            arrival_time_from: Optional[time] = None,
-            arrival_time_to: Optional[time] = None,
-            sites: Optional[List[int]] = None,
-            is_transfer: Optional[bool] = None,
+        self,
+        departure_date: date,
+        page: int = 1,
+        size: int = 20,
+        from_city_ids: Optional[List[int]] = None,
+        to_city_ids: Optional[List[int]] = None,
+        departure_time_from: Optional[time] = None,
+        departure_time_to: Optional[time] = None,
+        arrival_time_from: Optional[time] = None,
+        arrival_time_to: Optional[time] = None,
+        sites: Optional[List[int]] = None,
+        is_transfer: Optional[bool] = None,
     ) -> Dict[str, Any]:
         available_sites = self._normalize_sites(sites)
         existing_sites = self._get_existing_site_ids(available_sites)
@@ -695,16 +695,16 @@ class RouteService:
         return {"total": total, "page": page, "size": size, "items": items}
 
     def get_route_by_cities(
-            self,
-            departure_dates: List[date],
-            from_city_id: int,
-            to_city_id: int,
-            departure_time_from: Optional[time] = None,
-            departure_time_to: Optional[time] = None,
-            arrival_time_from: Optional[time] = None,
-            arrival_time_to: Optional[time] = None,
-            sites: Optional[List[int]] = None,
-            is_transfer: Optional[bool] = None,
+        self,
+        departure_dates: List[date],
+        from_city_id: int,
+        to_city_id: int,
+        departure_time_from: Optional[time] = None,
+        departure_time_to: Optional[time] = None,
+        arrival_time_from: Optional[time] = None,
+        arrival_time_to: Optional[time] = None,
+        sites: Optional[List[int]] = None,
+        is_transfer: Optional[bool] = None,
     ) -> Dict[str, Any]:
         available_sites = self._normalize_sites(sites)
         existing_sites_str: Set[str] = {
@@ -743,13 +743,13 @@ class RouteService:
         return result
 
     def get_trips_by_route(
-            self,
-            route_id: int,
-            departure_time_from: Optional[time] = None,
-            departure_time_to: Optional[time] = None,
-            arrival_time_from: Optional[time] = None,
-            arrival_time_to: Optional[time] = None,
-            is_transfer: Optional[bool] = None,
+        self,
+        route_id: int,
+        departure_time_from: Optional[time] = None,
+        departure_time_to: Optional[time] = None,
+        arrival_time_from: Optional[time] = None,
+        arrival_time_to: Optional[time] = None,
+        is_transfer: Optional[bool] = None,
     ) -> TripSchemaResponse:
         latest = self._build_history_subquery().alias("latest_history")
         trip_ids_subq = self._apply_time_filters(
@@ -797,7 +797,7 @@ class RouteService:
 
     @staticmethod
     def _make_route_entry(
-            from_city_id, to_city_id, dep_date, available, existing
+        from_city_id, to_city_id, dep_date, available, existing
     ) -> Dict[str, Any]:
         existing_str = [str(s) for s in existing]
         agents = {}
@@ -842,8 +842,8 @@ class RouteService:
             q = q.where(RouteModel.to_city_id.in_(to_ids))
 
         total = (
-                self.db.execute(select(func.count()).select_from(q.subquery())).scalar()
-                or 0
+            self.db.execute(select(func.count()).select_from(q.subquery())).scalar()
+            or 0
         )
         rows = self.db.execute(q.offset((page - 1) * size).limit(size)).all()
         return rows, total
@@ -851,6 +851,7 @@ class RouteService:
     @staticmethod
     def _build_history_subquery():
         cutoff = datetime.now() - timedelta(days=30)
+
         return (
             select(
                 TripHistoryModel.trip_id,
@@ -882,16 +883,16 @@ class RouteService:
         return q
 
     def _get_routes_data(
-            self,
-            dep_date,
-            from_city_id,
-            to_city_id,
-            available_sites,
-            dep_time_from,
-            dep_time_to,
-            arr_time_from,
-            arr_time_to,
-            is_transfer,
+        self,
+        dep_date,
+        from_city_id,
+        to_city_id,
+        available_sites,
+        dep_time_from,
+        dep_time_to,
+        arr_time_from,
+        arr_time_to,
+        is_transfer,
     ) -> Dict[Any, RouteSchema]:
         latest = self._build_history_subquery().alias("latest_history")
         time_filters = (dep_time_from, dep_time_to, arr_time_from, arr_time_to)
@@ -953,15 +954,18 @@ class RouteService:
     @staticmethod
     def _process_trips(rows) -> TripSchemaResponse:
         trips = []
+
         for row in rows:
             trip = row[0]
             td = trip.duration
             duration = None
+
             if td is not None:
                 total_sec = int(td.total_seconds())
                 duration = time(
                     total_sec // 3600 % 24, (total_sec % 3600) // 60, total_sec % 60
                 )
+
             trips.append(
                 TripSchema(
                     from_station=trip.from_station,
@@ -982,16 +986,16 @@ class RouteService:
         return TripSchemaResponse(total_segments_count=len(trips), trips=trips)
 
     def export_routes_to_csv(
-            self,
-            departure_date: "date",
-            from_city_ids: Optional[List[int]] = None,
-            to_city_ids: Optional[List[int]] = None,
-            departure_time_from: Optional["time"] = None,
-            departure_time_to: Optional["time"] = None,
-            arrival_time_from: Optional["time"] = None,
-            arrival_time_to: Optional["time"] = None,
-            is_transfer: Optional[bool] = None,
-            sites: Optional[List[int]] = None,
+        self,
+        departure_date: "date",
+        from_city_ids: Optional[List[int]] = None,
+        to_city_ids: Optional[List[int]] = None,
+        departure_time_from: Optional["time"] = None,
+        departure_time_to: Optional["time"] = None,
+        arrival_time_from: Optional["time"] = None,
+        arrival_time_to: Optional["time"] = None,
+        is_transfer: Optional[bool] = None,
+        sites: Optional[List[int]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Returns a flat list of rows for CSV export of routes on a specified date.
@@ -1002,7 +1006,12 @@ class RouteService:
         to_city = aliased(CityModel, name="to_city")
         latest = self._build_history_subquery().alias("latest_history")
 
-        time_filters = (departure_time_from, departure_time_to, arrival_time_from, arrival_time_to)
+        time_filters = (
+            departure_time_from,
+            departure_time_to,
+            arrival_time_from,
+            arrival_time_to,
+        )
         has_time = any(time_filters)
 
         trip_ids_q = self._apply_time_filters(
@@ -1079,18 +1088,19 @@ class RouteService:
         ]
 
     def export_trips_to_csv(
-            self,
-            route_id: int,
-            departure_time_from: Optional[time] = None,
-            departure_time_to: Optional[time] = None,
-            arrival_time_from: Optional[time] = None,
-            arrival_time_to: Optional[time] = None,
-            is_transfer: Optional[bool] = None,
+        self,
+        route_id: int,
+        departure_time_from: Optional[time] = None,
+        departure_time_to: Optional[time] = None,
+        arrival_time_from: Optional[time] = None,
+        arrival_time_to: Optional[time] = None,
+        is_transfer: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """
         Returns a flat list of rows for CSV export of trips for a given route.
         Applies the same filters as get_trips_by_route.
         """
+
         response = self.get_trips_by_route(
             route_id=route_id,
             departure_time_from=departure_time_from,
@@ -1104,10 +1114,16 @@ class RouteService:
         for trip in response.trips:
             rows.append(
                 {
-                    "departure_date": str(trip.departure_date) if trip.departure_date else "",
-                    "departure_time": str(trip.departure_time)[:5] if trip.departure_time else "",
+                    "departure_date": str(trip.departure_date)
+                    if trip.departure_date
+                    else "",
+                    "departure_time": str(trip.departure_time)[:5]
+                    if trip.departure_time
+                    else "",
                     "arrival_date": str(trip.arrival_date) if trip.arrival_date else "",
-                    "arrival_time": str(trip.arrival_time)[:5] if trip.arrival_time else "",
+                    "arrival_time": str(trip.arrival_time)[:5]
+                    if trip.arrival_time
+                    else "",
                     "duration": str(trip.duration)[:5] if trip.duration else "",
                     "from_station": trip.from_station or "",
                     "to_station": trip.to_station or "",
@@ -1115,24 +1131,27 @@ class RouteService:
                     "is_transfer": trip.is_transfer,
                     "price": trip.price,
                     "currency": trip.currency,
-                    "available_seats": trip.available_seats if trip.available_seats is not None else "",
-                    "price_updated_at": trip.price_updated_at.strftime(
-                        "%Y-%m-%d %H:%M") if trip.price_updated_at else "",
+                    "available_seats": trip.available_seats
+                    if trip.available_seats is not None
+                    else "",
+                    "price_updated_at": trip.price_updated_at.strftime("%Y-%m-%d %H:%M")
+                    if trip.price_updated_at
+                    else "",
                 }
             )
         return rows
 
     def export_segment_to_csv(
-            self,
-            from_city_id: int,
-            to_city_id: int,
-            departure_dates: List[date],
-            departure_time_from: Optional[time] = None,
-            departure_time_to: Optional[time] = None,
-            arrival_time_from: Optional[time] = None,
-            arrival_time_to: Optional[time] = None,
-            sites: Optional[List[int]] = None,
-            is_transfer: Optional[bool] = None,
+        self,
+        from_city_id: int,
+        to_city_id: int,
+        departure_dates: List[date],
+        departure_time_from: Optional[time] = None,
+        departure_time_to: Optional[time] = None,
+        arrival_time_from: Optional[time] = None,
+        arrival_time_to: Optional[time] = None,
+        sites: Optional[List[int]] = None,
+        is_transfer: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """
         Flat CSV export for a city-pair segment across multiple departure dates.
@@ -1142,7 +1161,12 @@ class RouteService:
         to_city_alias = aliased(CityModel, name="to_city")
         latest = self._build_history_subquery().alias("latest_history")
 
-        time_filters = (departure_time_from, departure_time_to, arrival_time_from, arrival_time_to)
+        time_filters = (
+            departure_time_from,
+            departure_time_to,
+            arrival_time_from,
+            arrival_time_to,
+        )
         has_time = any(time_filters)
 
         trip_ids_q = self._apply_time_filters(
@@ -1155,7 +1179,9 @@ class RouteService:
         )
 
         available_sites = self._normalize_sites(sites)
-        existing_site_ids = [str(s) for s in self._get_existing_site_ids(available_sites)]
+        existing_site_ids = [
+            str(s) for s in self._get_existing_site_ids(available_sites)
+        ]
 
         q = (
             select(

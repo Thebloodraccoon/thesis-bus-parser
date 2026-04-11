@@ -16,11 +16,11 @@ class VoyagerScraper(RequestScraper):
         return cls(await cls._load_site("voyager"))
 
     async def fetch(
-            self,
-            date: datetime,
-            departure_city: CitySchema,
-            arrival_city: CitySchema,
-            **_: Any,
+        self,
+        date: datetime,
+        departure_city: CitySchema,
+        arrival_city: CitySchema,
+        **_: Any,
     ) -> Optional[List[dict]]:
         date_str = date.strftime("%Y-%m-%d")
         logger.debug(
@@ -57,10 +57,10 @@ class VoyagerScraper(RequestScraper):
             return None
 
     def parse(
-            self,
-            content: List[dict],
-            departure_city: CitySchema,
-            arrival_city: CitySchema,
+        self,
+        content: List[dict],
+        departure_city: CitySchema,
+        arrival_city: CitySchema,
     ) -> List[TicketData]:
         logger.debug(f"[Voyager] Starting parse of {len(content)} trips...")
         tickets: List[TicketData] = []
@@ -106,6 +106,8 @@ class VoyagerScraper(RequestScraper):
                 logger.error(f"[Voyager] Parse error: {exc}. Raw trip data: {trip}")
 
         if tickets:
-            logger.info(f"[Voyager] Successfully parsed {len(tickets)}/{len(content)} tickets.")
+            logger.info(
+                f"[Voyager] Successfully parsed {len(tickets)}/{len(content)} tickets."
+            )
 
         return tickets

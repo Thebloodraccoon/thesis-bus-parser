@@ -70,11 +70,11 @@ class CityMatcher(ABC):
         """Resolve and persist city IDs for *all* cities in the DB."""
 
     def _fuzzy_match(
-            self,
-            target: str,
-            candidates: List[Dict[str, Any]],
-            name_key: str = "name",
-            id_key: str = "id",
+        self,
+        target: str,
+        candidates: List[Dict[str, Any]],
+        name_key: str = "name",
+        id_key: str = "id",
     ) -> Optional[Any]:
         target_norm = target.lower()
         best_id, best_ratio, best_name = None, 0.0, None
@@ -249,9 +249,7 @@ class ApiCityMatcher(CityMatcher, ABC):
                         return city, found
 
                 except Exception as exc:
-                    logger.error(
-                        f"[{self.site_name}] Error for '{variant}': {exc}"
-                    )
+                    logger.error(f"[{self.site_name}] Error for '{variant}': {exc}")
 
         return city, None
 
@@ -406,18 +404,22 @@ class CurrencyService:
                 if result:
                     updated.append(result)
 
-        logger.info(f"Currency refresh completed. Updated {len(updated)} currency records in DB.")
+        logger.info(
+            f"Currency refresh completed. Updated {len(updated)} currency records in DB."
+        )
         return updated
 
     @staticmethod
     def _persist(
-            repo: CurrencyRepository,
-            code: Optional[str],
-            rate: Any,
-            date_str: Optional[str],
+        repo: CurrencyRepository,
+        code: Optional[str],
+        rate: Any,
+        date_str: Optional[str],
     ) -> Optional[Dict[str, Any]]:
         if not code or not rate:
-            logger.debug(f"Skipping persistence: missing code or rate (code: {code}, rate: {rate}).")
+            logger.debug(
+                f"Skipping persistence: missing code or rate (code: {code}, rate: {rate})."
+            )
             return None
         try:
             ex_date = date.today()
@@ -489,11 +491,20 @@ class RouteFetcher:
         raw_routes = resp.json().get("list", [])
         result: List[RouteData] = []
 
+        seen_segments = set()
+
         with db_session() as s:
             city_repo = CityRepository(s)
             for route in raw_routes:
-                dep = city_repo.get_by_like_bus_id(route["departure_city_id"])
-                arr = city_repo.get_by_like_bus_id(route["arrival_city_id"])
+                dep_id = route["departure_city_id"]
+                arr_id = route["arrival_city_id"]
+                segment = (dep_id, arr_id)
+
+                if segment in seen_segments:
+                    continue
+
+                dep = city_repo.get_by_like_bus_id(dep_id)
+                arr = city_repo.get_by_like_bus_id(arr_id)
                 if not dep or not arr:
                     continue
 
@@ -516,8 +527,12 @@ class RouteFetcher:
                             arrival_station_id=route.get("arrival_station_id"),
                         )
                     )
+                    seen_segments.add(segment)
+
                 except Exception as exc:
                     logger.error(f"Route data build error: {exc}")
 
-        random.shuffle(result)
-        return result
+        mini_batch = result[:500]
+        random.shuffle(mini_batch)
+
+        return mini_batch

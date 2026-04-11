@@ -18,11 +18,11 @@ class RubikonScraper(RequestScraper):
         return cls(await cls._load_site("rubikon"))
 
     async def fetch(
-            self,
-            date: datetime,
-            departure_city: CitySchema,
-            arrival_city: CitySchema,
-            **_: Any,
+        self,
+        date: datetime,
+        departure_city: CitySchema,
+        arrival_city: CitySchema,
+        **_: Any,
     ) -> List[dict]:
         url = f"{self.site.url}/departures"
         params = {
@@ -49,7 +49,9 @@ class RubikonScraper(RequestScraper):
                 )
                 await asyncio.sleep(2)
 
-            raise ValueError(f"Failed to get JSON from page {page} after {max_retries} attempts.")
+            raise ValueError(
+                f"Failed to get JSON from page {page} after {max_retries} attempts."
+            )
 
         all_tickets = []
 
@@ -73,11 +75,15 @@ class RubikonScraper(RequestScraper):
                 results = await asyncio.gather(*tasks)
 
                 for res in results:
-                    page_tickets = res.get("data", {}).get("departures", {}).get("data", [])
+                    page_tickets = (
+                        res.get("data", {}).get("departures", {}).get("data", [])
+                    )
                     all_tickets.extend(page_tickets)
 
         except Exception as exc:
-            raise RuntimeError(f"Fetch failed for {departure_city.name_ua} -> {arrival_city.name_ua}: {exc}") from exc
+            raise RuntimeError(
+                f"Fetch failed for {departure_city.name_ua} -> {arrival_city.name_ua}: {exc}"
+            ) from exc
 
         return all_tickets
 
