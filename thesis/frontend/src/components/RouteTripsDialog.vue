@@ -190,7 +190,7 @@ const fmt = (dateStr, timeStr) => {
           <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-surface-400">
             <span>{{ formatDate(props.selectedDate, { showTime: false, showSeconds: false }) }}</span>
             <span>{{ props.aggregatorName }}</span>
-            <span v-if="props.departureTimeFrom">🕐 {{ props.departureTimeFrom }} — {{ props.departureTimeTo }}</span>
+            <span v-if="props.departureTimeFrom">🕐 departure: {{ props.departureTimeFrom }} — {{ props.departureTimeTo }}</span>
             <span v-if="props.arrivalTimeFrom">🕑 arrival: {{ props.arrivalTimeFrom }} — {{ props.arrivalTimeTo }}</span>
             <span v-if="props.isTransfer !== null && props.isTransfer !== undefined">
               {{ props.isTransfer ? 'transfer' : 'direct' }}

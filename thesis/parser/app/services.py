@@ -481,18 +481,46 @@ class RouteFetcher:
     def get_routes(cls, for_date: datetime) -> List["RouteData"]:  # noqa: F821
         """Fetch routes from the partner API and resolve city schemas."""
 
-        date_str = for_date.strftime("%Y-%m-%d")
-        resp = httpx.get(
-            cls._ROUTES_URL,
-            headers={"X-API-KEY": settings.API_KEY},
-            params={"date": date_str},
-            timeout=30,
-        )
-        raw_routes = resp.json().get("list", [])
+        # date_str = for_date.strftime("%Y-%m-%d")
+        # resp = httpx.get(
+        #     cls._ROUTES_URL,
+        #     headers={"X-API-KEY": settings.API_KEY},
+        #     params={"date": date_str},
+        #     timeout=30,
+        # )
+        # raw_routes = resp.json().get("list", [])
+        # result: List[RouteData] = []
+
+        raw_routes = [
+            {
+                "departure_city_id": "4",
+                "arrival_city_id": "13",
+                "route_id": 1001,  # Было "sim-1", стало число
+                "trip_id": 101,
+                "departure_time": for_date.replace(hour=10, minute=0).strftime("%Y-%m-%d %H:%M:%S"),
+                "arrival_time": for_date.replace(hour=15, minute=0).strftime("%Y-%m-%d %H:%M:%S"),
+                "departure_station_id": 40,  # Было "st-4", стало число
+                "arrival_station_id": 130,  # Было "st-13", стало число
+            },
+            {
+                "departure_city_id": "13",
+                "arrival_city_id": "4",
+                "route_id": 1002,  # Было "sim-2", стало число
+                "trip_id": 102,
+                "departure_time": for_date.replace(hour=18, minute=0).strftime("%Y-%m-%d %H:%M:%S"),
+                "arrival_time": for_date.replace(hour=23, minute=0).strftime("%Y-%m-%d %H:%M:%S"),
+                "departure_station_id": 130,  # Было "st-13", стало число
+                "arrival_station_id": 40,  # Было "st-4", стало число
+            }
+        ]
+        # --- СИМУЛЯЦИЯ КОНЕЦ ---
+
         result: List[RouteData] = []
+        seen_segments = set()
+        logger.info(f"Simulating {len(raw_routes)} routes.")
 
         seen_segments = set()
-
+        logger.info(f"Found {len(raw_routes)} routes.")
         with db_session() as s:
             city_repo = CityRepository(s)
             for route in raw_routes:

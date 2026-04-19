@@ -24,6 +24,13 @@ export default defineConfig({
     server: {
         host: true,
         strictPort: true,
-        allowedHosts: ['*']
+        allowedHosts: ['*'],
+        watch: {
+            usePolling: true,
+            interval: 100
+        },
+        hmr: {
+            clientPort: 8080
+        }
     }
 });
